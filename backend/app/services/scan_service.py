@@ -1,15 +1,17 @@
 from fastapi import UploadFile
 
+from app.integrations.iam.adapter import IAMEngineAdapter
 from app.schemas.iam.response import ScanResponse
 
 
 class ScanService:
-    """Orchestrates security scan workflows."""
+    """Coordinates security scan workflows."""
+
+    def __init__(self) -> None:
+        self.iam_adapter = IAMEngineAdapter()
 
     async def scan_iam_policy(
         self,
         policy: UploadFile,
     ) -> ScanResponse:
-        return ScanResponse(
-            message=f"Received {policy.filename}"
-        )
+        return await self.iam_adapter.analyze(policy)
