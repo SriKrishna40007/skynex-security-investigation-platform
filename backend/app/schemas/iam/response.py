@@ -2,4 +2,6 @@ from pydantic import BaseModel
 
 
 class ScanResponse(BaseModel):
-    message: str
+    overall_risk_score: int
+    findings: int
+    recommendations: list[str]
