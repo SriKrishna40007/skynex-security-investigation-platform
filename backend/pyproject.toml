@@ -7,6 +7,7 @@ requires-python = ">=3.13"
 dependencies = [
     "fastapi>=0.139.2",
     "iam-intelligence-engine",
+    "terraform-security-analyzer",
     "pydantic>=2.13.4",
     "python-multipart>=0.0.32",
     "uvicorn>=0.51.0",
@@ -20,3 +21,4 @@ dev = [
 
 [tool.uv.sources]
 iam-intelligence-engine = { path = "../../../Engineering-Portfolio/iam-intelligence-engine", editable = true }
+terraform-security-analyzer = { path = "../../../terraform-security-analyzer", editable = true }
