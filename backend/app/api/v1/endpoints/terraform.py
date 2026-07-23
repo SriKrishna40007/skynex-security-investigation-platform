@@ -1,6 +1,6 @@
 from fastapi import APIRouter, File, UploadFile
 
-from app.schemas.terraform.response import ScanResponse
+from app.schemas.investigation import InvestigationResponse
 from app.services.scan_service import ScanService
 
 router = APIRouter(
@@ -11,8 +11,11 @@ router = APIRouter(
 scan_service = ScanService()
 
 
-@router.post("/terraform", response_model=ScanResponse)
+@router.post(
+    "/terraform",
+    response_model=InvestigationResponse,
+)
 async def scan_terraform_file(
     terraform_file: UploadFile = File(...),
-) -> ScanResponse:
+) -> InvestigationResponse:
     return await scan_service.scan_terraform_file(terraform_file)

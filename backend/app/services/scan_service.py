@@ -16,3 +16,4 @@ class ScanService:
     async def scan_terraform_file(self, terraform_file):
         result = await self.terraform_adapter.scan(terraform_file)
         return self.investigation_service.build_terraform_report(result)
+        result = await self.terraform_adapter.scan(terraform_file)
