@@ -22,3 +22,6 @@ dev = [
 [tool.uv.sources]
 iam-intelligence-engine = { path = "../../../Engineering-Portfolio/iam-intelligence-engine", editable = true }
 terraform-security-analyzer = { path = "../../../terraform-security-analyzer", editable = true }
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
