@@ -1,13 +1,8 @@
-"""
-Public API response for investigation endpoints.
-"""
-
-from app.schemas.investigation.report import InvestigationReport
+from pydantic import BaseModel
 
 
-class InvestigationResponse(InvestigationReport):
-    """
-    Public response model.
-    """
-
-    pass
+class InvestigationResponse(BaseModel):
+    attack_path: list[str]
+    blast_radius: list[str]
+    risk_score: float
+    summary: str

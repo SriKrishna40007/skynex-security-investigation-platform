@@ -1,9 +1,1 @@
-[
-    {
-        "rule_id": "AWS001",
-        "severity": "HIGH",
-        "title": "SSH Open to Internet",
-        "resource": "web",
-        "recommendation": "Restrict SSH access to trusted IP addresses instead of 0.0.0.0/0."
-    }
-]
+[]
