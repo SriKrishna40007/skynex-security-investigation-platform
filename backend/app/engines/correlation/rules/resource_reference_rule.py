@@ -7,22 +7,24 @@ from app.engines.correlation.rules.base import RelationshipRule
 
 class ResourceReferenceRule(RelationshipRule):
     """
-    Discovers relationships based on explicit resource references.
-
-    Expected metadata format:
-
-    metadata = {
-        "references": [
-            "aws_security_group.web",
-            "aws_iam_role.app"
-        ]
-    }
+    Discovers infrastructure relationships from Terraform references.
     """
+
+    RELATIONSHIP_TYPES = {
+        "vpc_id": "belongs_to",
+        "subnet_id": "deployed_in",
+        "security_group_id": "protected_by",
+        "security_group_ids": "protected_by",
+        "route_table_id": "routed_by",
+        "network_interface_id": "attached_to",
+        "iam_instance_profile": "uses",
+    }
 
     def discover(
         self,
         resources: list[Resource],
     ) -> list[Relationship]:
+
         relationships: list[Relationship] = []
 
         resource_lookup = {
@@ -31,17 +33,36 @@ class ResourceReferenceRule(RelationshipRule):
         }
 
         for resource in resources:
-            references = resource.metadata.get("references", [])
+
+            references = resource.metadata.get(
+                "references",
+                [],
+            )
 
             for reference in references:
+
                 if reference not in resource_lookup:
                     continue
+
+                relationship_type = "references"
+
+                for attribute, value in resource.metadata.items():
+
+                    if reference not in str(value):
+                        continue
+
+                    relationship_type = self.RELATIONSHIP_TYPES.get(
+                        attribute,
+                        "references",
+                    )
+
+                    break
 
                 relationships.append(
                     Relationship(
                         source_id=resource.id,
                         target_id=reference,
-                        relationship_type="references",
+                        relationship_type=relationship_type,
                     )
                 )
 
