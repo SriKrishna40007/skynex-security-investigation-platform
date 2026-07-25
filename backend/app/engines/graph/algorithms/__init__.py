@@ -1,7 +1,5 @@
-from .path_finder import PathFinder
-from .traversal import GraphTraversal
+from .traversal import BreadthFirstTraversal
 
 __all__ = [
-    "GraphTraversal",
-    "PathFinder",
+    "BreadthFirstTraversal",
 ]
