@@ -1,3 +1,5 @@
+from pprint import pprint
+
 from app.domain.models.investigation import Investigation
 from app.domain.models.resource import Resource
 
@@ -12,7 +14,6 @@ class InvestigationBuilder:
         self,
         scan_result: dict,
     ) -> Investigation:
-        from pprint import pprint
 
         pprint(scan_result)
 
@@ -23,12 +24,18 @@ class InvestigationBuilder:
 
         for sdk_resource in scan_result.get("resources", []):
 
+            tags = {}
+
+            if isinstance(sdk_resource.attributes.get("tags"), dict):
+                tags = sdk_resource.attributes["tags"]
+
             investigation.resources.append(
                 Resource(
                     id=f"{sdk_resource.resource_type}.{sdk_resource.resource_name}",
                     name=sdk_resource.resource_name,
                     type=sdk_resource.resource_type,
                     provider="terraform",
+                    tags=tags,
                     metadata=sdk_resource.attributes,
                 )
             )
