@@ -5,10 +5,7 @@ from app.engines.graph.implementations import KnowledgeGraphEngine
 
 
 def test_knowledge_graph_engine_builds_graph():
-    investigation = Investigation(
-        id="investigation-1",
-        name="Knowledge Graph Test",
-    )
+    investigation = Investigation()
 
     investigation.resources = [
         Resource(
@@ -41,3 +38,15 @@ def test_knowledge_graph_engine_builds_graph():
 
     assert len(graph.nodes) == 2
     assert len(graph.edges) == 1
+
+    assert graph.get_node("aws_instance.web") is not None
+
+    assert len(
+        graph.neighbors("aws_instance.web")
+    ) == 1
+
+    edge = graph.neighbors("aws_instance.web")[0]
+
+    assert edge.target == "aws_security_group.web"
+
+    assert edge.relationship_type == "references"
