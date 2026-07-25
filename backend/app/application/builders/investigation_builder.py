@@ -15,6 +15,7 @@ class InvestigationBuilder:
         from pprint import pprint
 
         pprint(scan_result)
+
         investigation = Investigation(
             id="terraform-investigation",
             name="Terraform Investigation",
@@ -24,10 +25,11 @@ class InvestigationBuilder:
 
             investigation.resources.append(
                 Resource(
-                    id=sdk_resource.id,
-                    name=sdk_resource.name,
-                    type=sdk_resource.type,
+                    id=f"{sdk_resource.resource_type}.{sdk_resource.resource_name}",
+                    name=sdk_resource.resource_name,
+                    type=sdk_resource.resource_type,
                     provider="terraform",
+                    metadata=sdk_resource.attributes,
                 )
             )
 
