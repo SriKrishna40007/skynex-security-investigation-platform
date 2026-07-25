@@ -5,11 +5,16 @@ from app.engines.graph.models import GraphEdge, GraphNode, KnowledgeGraph
 class KnowledgeGraphBuilder:
     """Builds a KnowledgeGraph from an Investigation."""
 
-    def build(self, investigation: Investigation) -> KnowledgeGraph:
+    def build(
+        self,
+        investigation: Investigation,
+    ) -> KnowledgeGraph:
+
         graph = KnowledgeGraph()
 
         for resource in investigation.resources:
-            graph.nodes.append(
+
+            graph.add_node(
                 GraphNode(
                     id=resource.id,
                     label=resource.name,
@@ -19,7 +24,8 @@ class KnowledgeGraphBuilder:
             )
 
         for relationship in investigation.relationships:
-            graph.edges.append(
+
+            graph.add_edge(
                 GraphEdge(
                     source=relationship.source_id,
                     target=relationship.target_id,
