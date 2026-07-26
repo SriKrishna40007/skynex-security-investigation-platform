@@ -4,10 +4,7 @@ from app.domain.models.resource import Resource
 
 
 def test_pipeline_builds_complete_investigation():
-    investigation = Investigation(
-        id="investigation-1",
-        name="Pipeline Test",
-    )
+    investigation = Investigation()
 
     investigation.resources = [
         Resource(
@@ -52,14 +49,18 @@ def test_pipeline_builds_complete_investigation():
     assert "attack_path" in result.analysis
     assert "blast_radius" in result.analysis
 
-    assert result.analysis["attack_path"] == [
+    attack_path = result.analysis["attack_path"]
+
+    assert attack_path.exists is True
+    assert attack_path.nodes == [
         "internet",
         "alb",
         "ec2",
     ]
+    assert attack_path.hop_count == 2
 
-    assert result.analysis["blast_radius"] == {
+    assert result.analysis["blast_radius"] == [
         "internet",
         "alb",
         "ec2",
-    }
+    ]

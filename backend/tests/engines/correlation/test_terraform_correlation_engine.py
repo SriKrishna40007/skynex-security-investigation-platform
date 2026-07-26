@@ -4,10 +4,7 @@ from app.engines.correlation.implementations import TerraformCorrelationEngine
 
 
 def test_terraform_correlation_engine_discovers_relationships():
-    investigation = Investigation(
-        id="investigation-1",
-        name="Terraform Investigation",
-    )
+    investigation = Investigation()
 
     investigation.resources = [
         Resource(
@@ -38,7 +35,5 @@ def test_terraform_correlation_engine_discovers_relationships():
     relationship = result.relationships[0]
 
     assert relationship.source_id == "aws_instance.web"
-
     assert relationship.target_id == "aws_security_group.web"
-
     assert relationship.relationship_type == "references"

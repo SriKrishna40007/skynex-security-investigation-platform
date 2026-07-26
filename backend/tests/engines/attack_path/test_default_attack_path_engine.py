@@ -6,10 +6,7 @@ from app.engines.graph.implementations import KnowledgeGraphEngine
 
 
 def test_attack_path_returns_shortest_path():
-    investigation = Investigation(
-        id="investigation-1",
-        name="Attack Path Test",
-    )
+    investigation = Investigation()
 
     investigation.resources = [
         Resource(
@@ -64,9 +61,14 @@ def test_attack_path_returns_shortest_path():
         "rds",
     )
 
-    assert result.analysis["attack_path"] == [
+    attack_path = result.analysis["attack_path"]
+
+    assert attack_path.exists is True
+    assert attack_path.nodes == [
         "internet",
         "alb",
         "ec2",
         "rds",
     ]
+    assert attack_path.hop_count == 3
+    assert attack_path.risk == "HIGH"

@@ -7,7 +7,7 @@ from typing import Any
 @dataclass(slots=True)
 class Resource:
     """
-    Canonical cloud resource used throughout Sentinel AI Platform.
+    Canonical cloud resource used throughout SKYNEX platform.
 
     Every cloud provider integration (Terraform, IAM, Azure,
     Kubernetes, etc.) must normalize its resources into this model.

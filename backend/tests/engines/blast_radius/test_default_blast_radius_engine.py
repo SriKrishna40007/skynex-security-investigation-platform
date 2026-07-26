@@ -6,10 +6,7 @@ from app.engines.graph.implementations import KnowledgeGraphEngine
 
 
 def test_blast_radius_returns_all_reachable_resources():
-    investigation = Investigation(
-        id="investigation-1",
-        name="Blast Radius Test",
-    )
+    investigation = Investigation()
 
     investigation.resources = [
         Resource(
@@ -56,18 +53,16 @@ def test_blast_radius_returns_all_reachable_resources():
         ),
     ]
 
-    graph_engine = KnowledgeGraphEngine()
-    investigation = graph_engine.build(investigation)
+    investigation = KnowledgeGraphEngine().build(investigation)
 
-    blast_radius_engine = DefaultBlastRadiusEngine()
-    result = blast_radius_engine.analyze(
+    result = DefaultBlastRadiusEngine().analyze(
         investigation,
         "internet",
     )
 
-    assert result.analysis["blast_radius"] == {
+    assert result.analysis["blast_radius"] == [
         "internet",
         "alb",
         "ec2",
         "rds",
-    }
+    ]
