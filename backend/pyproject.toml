@@ -1,7 +1,7 @@
 [project]
-name = "backend"
+name = "skynex-backend"
 version = "0.1.0"
-description = "Add your description here"
+description = "Enterprise Cloud Security Investigation Platform"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
@@ -11,6 +11,14 @@ dependencies = [
     "pydantic>=2.13.4",
     "python-multipart>=0.0.32",
     "uvicorn>=0.51.0",
+    "sqlalchemy>=2.0.51",
+    "alembic>=1.18.5",
+    "psycopg[binary]>=3.3.4",
+    "pydantic-settings>=2.14.2",
+    "python-jose[cryptography]>=3.5.0",
+    "pwdlib[argon2]>=0.3.0",
+    "email-validator>=2.3.0",
+    "python-dotenv>=1.2.2",
 ]
 
 [dependency-groups]
