@@ -13,6 +13,4 @@ class EngineMetrics:
 
     processed_items: int = 0
 
-    metadata: dict[str, int | float | str] = field(
-        default_factory=dict
-    )
+    metadata: dict[str, int | float | str] = field(default_factory=dict)

@@ -11,9 +11,7 @@ class InvestigationBuilder:
     external integration results.
     """
 
-    _REFERENCE_PATTERN = re.compile(
-        r"\${([A-Za-z0-9_]+\.[A-Za-z0-9_]+)\.[^}]+}"
-    )
+    _REFERENCE_PATTERN = re.compile(r"\${([A-Za-z0-9_]+\.[A-Za-z0-9_]+)\.[^}]+}")
 
     def _extract_references(
         self,
@@ -32,9 +30,7 @@ class InvestigationBuilder:
 
         def walk(value):
             if isinstance(value, str):
-                references.update(
-                    self._REFERENCE_PATTERN.findall(value)
-                )
+                references.update(self._REFERENCE_PATTERN.findall(value))
 
             elif isinstance(value, dict):
                 for item in value.values():
@@ -61,16 +57,13 @@ class InvestigationBuilder:
         )
 
         for sdk_resource in scan_result.get("resources", []):
-
             tags = {}
 
             if isinstance(sdk_resource.attributes.get("tags"), dict):
                 tags = sdk_resource.attributes["tags"]
 
             metadata = dict(sdk_resource.attributes)
-            metadata["references"] = self._extract_references(
-                sdk_resource.attributes
-            )
+            metadata["references"] = self._extract_references(sdk_resource.attributes)
 
             investigation.resources.append(
                 Resource(

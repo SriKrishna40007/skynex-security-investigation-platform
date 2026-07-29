@@ -29,9 +29,7 @@ async def investigate_terraform(
 
     return InvestigationResponse(
         attack_path=result.analysis.get("attack_path", []),
-        blast_radius=sorted(
-            result.analysis.get("blast_radius", set())
-        ),
+        blast_radius=sorted(result.analysis.get("blast_radius", set())),
         risk_score=result.risk_score,
         summary=result.summary,
     )

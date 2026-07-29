@@ -21,6 +21,4 @@ class BlastRadiusRule(RiskRule):
 
         score = min(affected * 5, 30)
 
-        return score, [
-            f"Compromise may affect {affected} connected resources."
-        ]
+        return score, [f"Compromise may affect {affected} connected resources."]

@@ -15,14 +15,10 @@ class AnalysisContextBuilder:
         return AnalysisContext(
             resources=investigation.resources,
             relationships=investigation.relationships,
-            attack_path=investigation.analysis.get(
-                "attack_path"
-            ),
+            attack_path=investigation.analysis.get("attack_path"),
             blast_radius=investigation.analysis.get(
                 "blast_radius",
                 [],
             ),
-            risk=investigation.analysis.get(
-                "risk"
-            ),
+            risk=investigation.analysis.get("risk"),
         )

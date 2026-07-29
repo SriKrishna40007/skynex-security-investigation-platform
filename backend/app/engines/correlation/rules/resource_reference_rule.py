@@ -27,27 +27,21 @@ class ResourceReferenceRule(RelationshipRule):
 
         relationships: list[Relationship] = []
 
-        resource_lookup = {
-            resource.id: resource
-            for resource in resources
-        }
+        resource_lookup = {resource.id: resource for resource in resources}
 
         for resource in resources:
-
             references = resource.metadata.get(
                 "references",
                 [],
             )
 
             for reference in references:
-
                 if reference not in resource_lookup:
                     continue
 
                 relationship_type = "references"
 
                 for attribute, value in resource.metadata.items():
-
                     if reference not in str(value):
                         continue
 

@@ -28,7 +28,6 @@ class PathFinder:
         visited: set[str] = set()
 
         while queue:
-
             current, path = queue.popleft()
 
             if current == target:
@@ -40,7 +39,6 @@ class PathFinder:
             visited.add(current)
 
             for edge in graph.neighbors(current):
-
                 if edge.target not in visited:
                     queue.append(
                         (

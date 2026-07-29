@@ -31,19 +31,13 @@ class ReasoningEngine:
         affected = len(context.blast_radius)
 
         if affected:
-            evidence.findings.append(
-                f"Blast radius includes {affected} resources."
-            )
+            evidence.findings.append(f"Blast radius includes {affected} resources.")
 
-            evidence.recommendations.append(
-                "Reduce lateral movement opportunities."
-            )
+            evidence.recommendations.append("Reduce lateral movement opportunities.")
 
         if context.risk:
             evidence.severity = context.risk.severity
 
-            evidence.findings.extend(
-                context.risk.reasons
-            )
+            evidence.findings.extend(context.risk.reasons)
 
         return evidence

@@ -21,10 +21,7 @@ class DefaultAIInvestigationEngine(AIInvestigationEngine):
             context,
         )
 
-        executive_summary = (
-            f"Overall investigation severity is "
-            f"{evidence.severity}."
-        )
+        executive_summary = f"Overall investigation severity is {evidence.severity}."
 
         technical_summary = (
             "Security analysis identified "

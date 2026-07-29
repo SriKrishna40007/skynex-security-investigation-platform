@@ -50,9 +50,7 @@ class DefaultAttackPathEngine(AttackPathEngine):
             )
         else:
             attack_path.risk = "LOW"
-            attack_path.description = (
-                "No attack path could be established."
-            )
+            attack_path.description = "No attack path could be established."
 
         investigation.analysis["attack_path"] = attack_path
 

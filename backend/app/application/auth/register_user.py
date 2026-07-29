@@ -14,9 +14,7 @@ class RegisterUserUseCase:
         existing_user = self.repository.get_by_email(request.email)
 
         if existing_user:
-            raise UserAlreadyExistsError(
-                "A user with this email already exists."
-            )
+            raise UserAlreadyExistsError("A user with this email already exists.")
 
         user = self.repository.create(
             full_name=request.full_name,

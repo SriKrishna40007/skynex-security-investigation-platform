@@ -21,7 +21,6 @@ class InvestigationService:
         low = 0
 
         for sdk_finding in scan_result["findings"]:
-
             severity = sdk_finding.severity.upper()
 
             if severity == "HIGH":

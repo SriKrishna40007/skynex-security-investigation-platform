@@ -23,9 +23,7 @@ class InvestigationOrchestrator:
     ):
         scan_result = await self.adapter.scan(terraform_file)
 
-        investigation = self.builder.from_terraform_scan(
-            scan_result
-        )
+        investigation = self.builder.from_terraform_scan(scan_result)
 
         return self.pipeline.run(
             investigation=investigation,

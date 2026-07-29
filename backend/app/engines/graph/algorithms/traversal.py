@@ -24,7 +24,6 @@ class BreadthFirstTraversal:
         order: list[str] = []
 
         while queue:
-
             current = queue.popleft()
 
             if current in visited:
@@ -34,7 +33,6 @@ class BreadthFirstTraversal:
             order.append(current)
 
             for edge in graph.neighbors(current):
-
                 if edge.target not in visited:
                     queue.append(edge.target)
 

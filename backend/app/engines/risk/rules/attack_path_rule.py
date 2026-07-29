@@ -23,16 +23,11 @@ class AttackPathRule(RiskRule):
         score = 30
 
         reasons = [
-            (
-                f"Attack path exists from "
-                f"{attack_path.source} to {attack_path.target}."
-            )
+            (f"Attack path exists from {attack_path.source} to {attack_path.target}.")
         ]
 
         if attack_path.hop_count >= 5:
             score += 20
-            reasons.append(
-                "Multiple lateral movement opportunities detected."
-            )
+            reasons.append("Multiple lateral movement opportunities detected.")
 
         return score, reasons

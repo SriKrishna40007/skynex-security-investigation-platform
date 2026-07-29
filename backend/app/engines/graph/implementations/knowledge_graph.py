@@ -10,7 +10,5 @@ class KnowledgeGraphEngine(GraphEngine):
         self._builder = KnowledgeGraphBuilder()
 
     def build(self, investigation: Investigation) -> Investigation:
-        investigation.analysis["knowledge_graph"] = self._builder.build(
-            investigation
-        )
+        investigation.analysis["knowledge_graph"] = self._builder.build(investigation)
         return investigation

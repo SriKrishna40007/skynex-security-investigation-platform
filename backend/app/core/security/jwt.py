@@ -8,9 +8,7 @@ from app.core.config import settings
 def create_access_token(subject: str) -> str:
     """Create a signed JWT access token."""
 
-    expire = datetime.now(UTC) + timedelta(
-        minutes=settings.access_token_expire_minutes
-    )
+    expire = datetime.now(UTC) + timedelta(minutes=settings.access_token_expire_minutes)
 
     payload = {
         "sub": subject,

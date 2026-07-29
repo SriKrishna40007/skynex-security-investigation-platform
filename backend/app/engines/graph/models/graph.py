@@ -24,9 +24,7 @@ class KnowledgeGraph:
         default_factory=lambda: defaultdict(list)
     )
 
-    node_index: dict[str, GraphNode] = field(
-        default_factory=dict
-    )
+    node_index: dict[str, GraphNode] = field(default_factory=dict)
 
     def add_node(
         self,

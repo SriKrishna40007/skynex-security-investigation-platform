@@ -41,9 +41,7 @@ def test_knowledge_graph_engine_builds_graph():
 
     assert graph.get_node("aws_instance.web") is not None
 
-    assert len(
-        graph.neighbors("aws_instance.web")
-    ) == 1
+    assert len(graph.neighbors("aws_instance.web")) == 1
 
     edge = graph.neighbors("aws_instance.web")[0]
 

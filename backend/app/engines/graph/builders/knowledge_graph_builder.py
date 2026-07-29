@@ -13,7 +13,6 @@ class KnowledgeGraphBuilder:
         graph = KnowledgeGraph()
 
         for resource in investigation.resources:
-
             graph.add_node(
                 GraphNode(
                     id=resource.id,
@@ -24,7 +23,6 @@ class KnowledgeGraphBuilder:
             )
 
         for relationship in investigation.relationships:
-
             graph.add_edge(
                 GraphEdge(
                     source=relationship.source_id,

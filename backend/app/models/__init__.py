@@ -1,3 +1,11 @@
+from app.core.database import Base
+from app.models.role import Role
+from app.models.session import Session
 from app.models.user import User
 
-__all__ = ["User"]
+__all__ = [
+    "Base",
+    "User",
+    "Role",
+    "Session",
+]

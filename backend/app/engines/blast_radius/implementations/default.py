@@ -17,11 +17,9 @@ class DefaultBlastRadiusEngine(BlastRadiusEngine):
     ) -> Investigation:
         graph: KnowledgeGraph = investigation.analysis["knowledge_graph"]
 
-        investigation.analysis["blast_radius"] = (
-            self._traversal.traverse(
-                graph,
-                compromised_resource,
-            )
+        investigation.analysis["blast_radius"] = self._traversal.traverse(
+            graph,
+            compromised_resource,
         )
 
         return investigation
