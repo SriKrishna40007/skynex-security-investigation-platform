@@ -64,3 +64,62 @@ def test_pipeline_builds_complete_investigation():
         "alb",
         "ec2",
     ]
+
+
+def test_pipeline_does_not_fabricate_topology_for_iam_investigation():
+    from app.application.pipeline.investigation_pipeline import (
+        InvestigationPipeline,
+    )
+    from app.domain.models.investigation import Investigation
+    from app.domain.models.resource import Resource
+
+    investigation = Investigation(
+        resources=[
+            Resource(
+                id="aws.iam_policy.example",
+                name="Example IAM Policy",
+                type="iam_policy",
+                provider="aws",
+            )
+        ],
+        risk_score=55.0,
+    )
+
+    pipeline = InvestigationPipeline()
+
+    result = pipeline.execute(investigation)
+
+    assert result.graph is None
+    assert result.relationships == []
+    assert "attack_path" not in result.analysis
+    assert "blast_radius" not in result.analysis
+    assert result.risk_score == 55.0
+
+
+def test_pipeline_preserves_iam_analysis_without_topology():
+    from app.application.pipeline.investigation_pipeline import (
+        InvestigationPipeline,
+    )
+    from app.domain.models.investigation import Investigation
+
+    investigation = Investigation(
+        risk_score=55.0,
+        analysis={
+            "iam": {
+                "overall_risk_score": 55,
+                "finding_count": 3,
+                "recommendations": [
+                    "Apply least privilege.",
+                ],
+            }
+        },
+    )
+
+    pipeline = InvestigationPipeline()
+
+    result = pipeline.execute(investigation)
+
+    assert result.analysis["iam"]["overall_risk_score"] == 55
+    assert result.analysis["iam"]["finding_count"] == 3
+    assert result.risk_score == 55.0
+    assert result.graph is None
