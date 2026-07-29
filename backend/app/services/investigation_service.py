@@ -70,6 +70,3 @@ class InvestigationService:
             ),
             findings=findings,
         )
-
-    def build_iam_report(self, analysis_result):
-        raise NotImplementedError("IAM integration will be updated next.")
