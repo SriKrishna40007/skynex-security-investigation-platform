@@ -3,7 +3,9 @@ from __future__ import annotations
 from app.domain.models.investigation import Investigation
 from app.engines.attack_path.implementations import DefaultAttackPathEngine
 from app.engines.blast_radius.implementations import DefaultBlastRadiusEngine
-from app.engines.correlation.implementations import TerraformCorrelationEngine
+from app.engines.correlation.implementations.canonical import (
+    CanonicalCorrelationEngine,
+)
 from app.engines.graph.implementations import KnowledgeGraphEngine
 from app.engines.risk.implementations import DefaultRiskEngine
 
@@ -20,7 +22,7 @@ class InvestigationPipeline:
     """
 
     def __init__(self) -> None:
-        self._terraform_correlation = TerraformCorrelationEngine()
+        self._correlation = CanonicalCorrelationEngine()
         self._graph = KnowledgeGraphEngine()
         self._attack_path = DefaultAttackPathEngine()
         self._blast_radius = DefaultBlastRadiusEngine()
@@ -45,8 +47,8 @@ class InvestigationPipeline:
         canonical without fabricating attack paths or blast-radius data.
         """
 
-        if self._supports_terraform_correlation(investigation):
-            investigation = self._terraform_correlation.correlate(investigation)
+        if self._supports_relationship_discovery(investigation):
+            investigation = self._correlation.correlate(investigation)
 
         if investigation.relationships:
             investigation = self._graph.build(investigation)
@@ -96,12 +98,12 @@ class InvestigationPipeline:
         )
 
     @staticmethod
-    def _supports_terraform_correlation(
+    def _supports_relationship_discovery(
         investigation: Investigation,
     ) -> bool:
         """
-        Detect canonical topology evidence without coupling investigation
-        processing to the provider that produced the resource.
+        Detect canonical relationship evidence without coupling correlation
+        to the provider that produced the resource.
         """
 
         return any(
