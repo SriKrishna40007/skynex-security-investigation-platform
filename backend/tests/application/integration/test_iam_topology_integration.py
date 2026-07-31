@@ -182,3 +182,94 @@ def test_iam_topology_does_not_fabricate_role_to_secret_attack_path():
     assert attack_path.exists is False
     assert attack_path.nodes == []
     assert attack_path.hop_count == 0
+
+
+def test_iam_policy_authorization_exposure_has_evidence_aware_blast_radius():
+    """
+    The canonical IAM policy node represents authorization evidence.
+
+    Traversing from this node describes resources reachable through permissions
+    granted by the policy. It must not be interpreted as proof that a human or
+    workload identity has been compromised.
+    """
+
+    orchestrator = InvestigationOrchestrator()
+    pipeline = InvestigationPipeline()
+
+    investigation = orchestrator.investigate_iam_policy(_authorization_policy())
+
+    policy_id = "aws.iam_policy.iam-policy"
+    role_arn = "arn:aws:iam::123456789012:role/ProductionAdmin"
+    secret_arn = (
+        "arn:aws:secretsmanager:ap-south-1:123456789012:secret:production/database"
+    )
+
+    result = pipeline.execute(
+        investigation,
+        compromised_resource=policy_id,
+    )
+
+    assert result.analysis["blast_radius"] == [
+        policy_id,
+        role_arn,
+        secret_arn,
+    ]
+
+    analysis = result.analysis["blast_radius_analysis"]
+
+    assert analysis.compromised_resource == policy_id
+    assert analysis.reachable_resources == (
+        policy_id,
+        role_arn,
+        secret_arn,
+    )
+
+    assert analysis.affected_resource_count == 2
+    assert analysis.maximum_depth == 1
+
+    impacts = {impact.resource_id: impact for impact in analysis.impacts}
+
+    assert impacts[policy_id].depth == 0
+    assert impacts[policy_id].relationship_types == ()
+
+    assert impacts[role_arn].depth == 1
+    assert impacts[role_arn].relationship_types == ("allows_assume_role",)
+
+    assert impacts[secret_arn].depth == 1
+    assert impacts[secret_arn].relationship_types == ("allows_action",)
+
+
+def test_iam_role_does_not_inherit_policy_authorization_blast_radius():
+    """
+    Policy permissions must not be projected onto a role unless canonical
+    evidence explicitly connects that role to those permissions.
+    """
+
+    orchestrator = InvestigationOrchestrator()
+    pipeline = InvestigationPipeline()
+
+    investigation = orchestrator.investigate_iam_policy(_authorization_policy())
+
+    role_arn = "arn:aws:iam::123456789012:role/ProductionAdmin"
+    secret_arn = (
+        "arn:aws:secretsmanager:ap-south-1:123456789012:secret:production/database"
+    )
+
+    result = pipeline.execute(
+        investigation,
+        compromised_resource=role_arn,
+    )
+
+    assert result.analysis["blast_radius"] == [
+        role_arn,
+    ]
+
+    analysis = result.analysis["blast_radius_analysis"]
+
+    assert analysis.compromised_resource == role_arn
+    assert analysis.reachable_resources == (role_arn,)
+
+    assert analysis.affected_resource_count == 0
+    assert analysis.maximum_depth == 0
+
+    assert all(impact.resource_id != secret_arn for impact in analysis.impacts)
