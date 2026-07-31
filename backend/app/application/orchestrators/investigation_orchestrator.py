@@ -58,7 +58,10 @@ class InvestigationOrchestrator:
 
         analysis_result = self._iam_adapter.analyze_policy(policy_data)
 
-        return self._builder.from_iam_analysis(analysis_result)
+        return self._builder.from_iam_analysis(
+            analysis_result,
+            policy_data=policy_data,
+        )
 
     async def investigate_iam_upload(
         self,
@@ -68,6 +71,9 @@ class InvestigationOrchestrator:
         Analyze an uploaded IAM policy and normalize the result into SKYNEX.
         """
 
-        analysis_result = await self._iam_adapter.analyze_upload(policy)
+        envelope = await self._iam_adapter.analyze_upload(policy)
 
-        return self._builder.from_iam_analysis(analysis_result)
+        return self._builder.from_iam_analysis(
+            envelope.analysis_result,
+            policy_data=envelope.policy_data,
+        )

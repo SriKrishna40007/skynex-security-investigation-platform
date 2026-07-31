@@ -6,6 +6,8 @@ from typing import Any
 from app.domain.models.finding import Finding
 from app.domain.models.investigation import Investigation
 from app.domain.models.resource import Resource
+from app.integrations.iam.resource_normalizer import IAMResourceNormalizer
+from app.integrations.iam.relationship_normalizer import IAMRelationshipNormalizer
 
 
 class InvestigationBuilder:
@@ -76,6 +78,8 @@ class InvestigationBuilder:
     def from_iam_analysis(
         self,
         analysis_result: Any,
+        *,
+        policy_data: dict[str, Any] | None = None,
     ) -> Investigation:
         """
         Build a canonical investigation from IAM Intelligence Engine output.
@@ -89,6 +93,25 @@ class InvestigationBuilder:
         summary = analysis_result.summary
 
         resource_ids: dict[str, str] = {}
+
+        # The IAM policy is a first-class canonical resource regardless of
+        # whether the external engine produced findings. Authorization
+        # relationships require a stable source node even for clean policies.
+        policy_resource_id = self._iam_resource_id("IAM Policy")
+
+        investigation.resources.append(
+            Resource(
+                id=policy_resource_id,
+                name="IAM Policy",
+                type="iam_policy",
+                provider="aws",
+                metadata={
+                    "source": "iam_intelligence_engine",
+                },
+            )
+        )
+
+        resource_ids["IAM Policy"] = policy_resource_id
 
         for engine_finding in summary.findings:
             resource_name = engine_finding.resource or "IAM Policy"
@@ -141,6 +164,29 @@ class InvestigationBuilder:
             "correlations": list(summary.correlations),
             "finding_count": len(summary.findings),
         }
+
+        if policy_data is not None:
+            investigation.analysis["iam"]["policy"] = policy_data
+
+            normalizer = IAMResourceNormalizer()
+
+            known_resource_ids = {resource.id for resource in investigation.resources}
+
+            for resource in normalizer.normalize_policy_resources(
+                policy_data,
+            ):
+                if resource.id not in known_resource_ids:
+                    investigation.resources.append(resource)
+                    known_resource_ids.add(resource.id)
+
+            relationship_normalizer = IAMRelationshipNormalizer()
+
+            investigation.relationships.extend(
+                relationship_normalizer.normalize_policy_relationships(
+                    policy_data,
+                    investigation.resources,
+                )
+            )
 
         return investigation
 
