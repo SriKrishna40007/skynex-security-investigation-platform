@@ -20,5 +20,8 @@ class AnalysisContextBuilder:
                 "blast_radius",
                 [],
             ),
+            blast_radius_analysis=investigation.analysis.get(
+                "blast_radius_analysis",
+            ),
             risk=investigation.analysis.get("risk"),
         )
