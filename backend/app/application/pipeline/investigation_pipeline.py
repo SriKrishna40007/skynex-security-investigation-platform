@@ -42,9 +42,10 @@ class InvestigationPipeline:
         Terraform resources can expose references that allow SKYNEX to derive
         relationships and build a knowledge graph.
 
-        IAM policy findings currently contain authorization-risk evidence but
-        not identity/resource topology. IAM investigations therefore remain
-        canonical without fabricating attack paths or blast-radius data.
+        IAM authorization evidence may also contribute canonical resources
+        and relationships. Once normalized, IAM topology participates in the
+        same provider-neutral graph, attack-path, blast-radius, and risk
+        analysis used for all supported investigation evidence.
         """
 
         if self._supports_relationship_discovery(investigation):

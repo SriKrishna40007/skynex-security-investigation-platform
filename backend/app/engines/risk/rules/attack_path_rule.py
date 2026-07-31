@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from app.domain.models.investigation import Investigation
 
 from .base import RiskRule
@@ -5,8 +7,19 @@ from .base import RiskRule
 
 class AttackPathRule(RiskRule):
     """
-    Scores risk based on attack path analysis.
+    Scores investigation risk using semantic attack-path evidence.
+
+    Attack-path discovery is responsible for determining the semantic
+    significance of the path. This rule translates that established
+    severity into an investigation-level score contribution.
     """
+
+    _SEVERITY_SCORES = {
+        "LOW": 10,
+        "MEDIUM": 20,
+        "HIGH": 30,
+        "CRITICAL": 40,
+    }
 
     def evaluate(
         self,
@@ -20,14 +33,29 @@ class AttackPathRule(RiskRule):
         if not attack_path.exists:
             return 0, []
 
-        score = 30
+        severity = attack_path.risk.upper()
+
+        score = self._SEVERITY_SCORES.get(severity)
+
+        if score is None:
+            return (
+                0,
+                [
+                    (
+                        "Attack path exists but its semantic severity "
+                        f"'{attack_path.risk}' is not recognized."
+                    )
+                ],
+            )
 
         reasons = [
-            (f"Attack path exists from {attack_path.source} to {attack_path.target}.")
+            (
+                f"{severity} attack path exists from "
+                f"{attack_path.source} to {attack_path.target}."
+            )
         ]
 
-        if attack_path.hop_count >= 5:
-            score += 20
-            reasons.append("Multiple lateral movement opportunities detected.")
+        if attack_path.description:
+            reasons.append(attack_path.description)
 
         return score, reasons

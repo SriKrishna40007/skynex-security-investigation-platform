@@ -1,5 +1,6 @@
 from app.application.pipeline import InvestigationPipeline
 from app.domain.models.investigation import Investigation
+from app.domain.models.relationship import Relationship
 from app.domain.models.resource import Resource
 
 
@@ -123,3 +124,62 @@ def test_pipeline_preserves_iam_analysis_without_topology():
     assert result.analysis["iam"]["finding_count"] == 3
     assert result.risk_score == 55.0
     assert result.graph is None
+
+
+def test_pipeline_preserves_upstream_risk_score_when_topology_risk_is_generated():
+    """
+    Provider/integration risk and canonical topology risk are separate
+    evidence channels.
+
+    Pipeline topology analysis must not destroy an upstream risk score.
+    """
+
+    investigation = Investigation(
+        risk_score=55.0,
+    )
+
+    investigation.resources = [
+        Resource(
+            id="source",
+            name="Source",
+            type="identity",
+            provider="canonical",
+        ),
+        Resource(
+            id="target",
+            name="Target",
+            type="resource",
+            provider="canonical",
+        ),
+    ]
+
+    investigation.relationships = [
+        Relationship(
+            source_id="source",
+            target_id="target",
+            relationship_type="allows_assume_role",
+        ),
+    ]
+
+    result = InvestigationPipeline().execute(
+        investigation,
+        source="source",
+        target="target",
+        compromised_resource="source",
+    )
+
+    assert result.risk_score == 55.0
+
+    assert "risk" in result.analysis
+
+    topology_risk = result.analysis["risk"]
+
+    assert topology_risk.score > 0
+    assert topology_risk.severity in {
+        "LOW",
+        "MEDIUM",
+        "HIGH",
+        "CRITICAL",
+    }
+
+    assert topology_risk.reasons
