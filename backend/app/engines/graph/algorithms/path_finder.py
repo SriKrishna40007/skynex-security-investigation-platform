@@ -3,6 +3,7 @@ from __future__ import annotations
 from collections import deque
 
 from app.engines.graph.models import KnowledgeGraph
+from app.engines.graph.policies import RelationshipSemantics
 
 
 class PathFinder:
@@ -39,6 +40,11 @@ class PathFinder:
             visited.add(current)
 
             for edge in graph.neighbors(current):
+                if not RelationshipSemantics.is_security_traversable(
+                    edge.relationship_type
+                ):
+                    continue
+
                 if edge.target not in visited:
                     queue.append(
                         (

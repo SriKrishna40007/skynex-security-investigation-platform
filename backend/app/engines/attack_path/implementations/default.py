@@ -1,6 +1,7 @@
 from app.domain.models.attack_path import AttackPath
 from app.domain.models.investigation import Investigation
 from app.engines.attack_path.base import AttackPathEngine
+from app.engines.attack_path.policies import AttackPathSemanticRiskPolicy
 from app.engines.graph.algorithms import PathFinder
 from app.engines.graph.models import KnowledgeGraph
 
@@ -10,6 +11,7 @@ class DefaultAttackPathEngine(AttackPathEngine):
 
     def __init__(self) -> None:
         self._path_finder = PathFinder()
+        self._risk_policy = AttackPathSemanticRiskPolicy()
 
     def analyze(
         self,
@@ -33,24 +35,13 @@ class DefaultAttackPathEngine(AttackPathEngine):
             exists=len(nodes) > 0,
         )
 
-        if attack_path.hop_count >= 5:
-            attack_path.risk = "CRITICAL"
-            attack_path.description = (
-                "Long attack chain with multiple pivot opportunities."
-            )
-        elif attack_path.hop_count >= 3:
-            attack_path.risk = "HIGH"
-            attack_path.description = (
-                "Attacker can reach the target through several connected resources."
-            )
-        elif attack_path.hop_count >= 1:
-            attack_path.risk = "MEDIUM"
-            attack_path.description = (
-                "Target is reachable through a limited attack path."
-            )
-        else:
-            attack_path.risk = "LOW"
-            attack_path.description = "No attack path could be established."
+        risk = self._risk_policy.evaluate(
+            graph,
+            nodes,
+        )
+
+        attack_path.risk = risk.severity
+        attack_path.description = risk.description
 
         investigation.analysis["attack_path"] = attack_path
 
