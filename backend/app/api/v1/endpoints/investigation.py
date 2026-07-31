@@ -1,5 +1,6 @@
 from fastapi import APIRouter, File, Form, UploadFile
 
+from app.application.mappers import InvestigationResponseMapper
 from app.application.orchestrators import InvestigationOrchestrator
 from app.schemas.investigation import InvestigationResponse
 
@@ -9,6 +10,7 @@ router = APIRouter(
 )
 
 orchestrator = InvestigationOrchestrator()
+response_mapper = InvestigationResponseMapper()
 
 
 @router.post(
@@ -27,9 +29,4 @@ async def investigate_terraform(
         target=target,
     )
 
-    return InvestigationResponse(
-        attack_path=result.analysis.get("attack_path", []),
-        blast_radius=sorted(result.analysis.get("blast_radius", set())),
-        risk_score=result.risk_score,
-        summary=result.summary,
-    )
+    return response_mapper.map(result)
