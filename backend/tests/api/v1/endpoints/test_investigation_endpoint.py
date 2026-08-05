@@ -1,4 +1,4 @@
-from unittest.mock import AsyncMock
+from unittest.mock import AsyncMock, Mock
 
 import pytest
 
@@ -11,6 +11,17 @@ from app.engines.blast_radius.models import (
     BlastRadiusAnalysis,
     BlastRadiusImpact,
 )
+
+
+class _AuthenticatedUser:
+    id = "user-123"
+    full_name = "Security Analyst"
+    email = "analyst@example.com"
+    is_active = True
+
+
+def _authenticated_user() -> _AuthenticatedUser:
+    return _AuthenticatedUser()
 
 
 def _investigation() -> Investigation:
@@ -90,6 +101,12 @@ async def test_terraform_endpoint_uses_public_response_mapping(
         mocked,
     )
 
+    monkeypatch.setattr(
+        endpoint.InvestigationPersistenceService,
+        "persist",
+        Mock(),
+    )
+
     upload = UploadFile(
         filename="main.tf",
         file=None,
@@ -99,6 +116,8 @@ async def test_terraform_endpoint_uses_public_response_mapping(
         terraform_file=upload,
         source="external-user",
         target="production-secret",
+        current_user=_authenticated_user(),
+        db=object(),
     )
 
     assert response.attack_path == [
@@ -139,6 +158,12 @@ async def test_terraform_endpoint_response_is_serializable(
         AsyncMock(return_value=_investigation()),
     )
 
+    monkeypatch.setattr(
+        endpoint.InvestigationPersistenceService,
+        "persist",
+        Mock(),
+    )
+
     upload = UploadFile(
         filename="main.tf",
         file=None,
@@ -148,6 +173,8 @@ async def test_terraform_endpoint_response_is_serializable(
         terraform_file=upload,
         source="external-user",
         target="production-secret",
+        current_user=_authenticated_user(),
+        db=object(),
     )
 
     payload = response.model_dump(mode="json")
