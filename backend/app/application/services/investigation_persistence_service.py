@@ -1,3 +1,4 @@
+from app.application.queries import InvestigationHistoryQuery
 from app.domain.models.investigation import Investigation
 from app.models import InvestigationRecord
 from app.repositories import InvestigationRepository
@@ -42,10 +43,30 @@ class InvestigationPersistenceService:
     def history(
         self,
         owner_id: str,
+        page: int = 1,
+        size: int = 20,
+        status: str | None = None,
+        severity: str | None = None,
+        investigation_type: str | None = None,
+        search: str | None = None,
+        sort_by: str = "created_at",
+        descending: bool = True,
     ) -> list[InvestigationRecord]:
         """Return investigations owned by one authenticated user."""
 
-        return self._repository.list_for_owner(owner_id)
+        query = InvestigationHistoryQuery(
+            owner_id=owner_id,
+            page=page,
+            size=size,
+            status=status,
+            severity=severity,
+            investigation_type=investigation_type,
+            search=search,
+            sort_by=sort_by,
+            descending=descending,
+        )
+
+        return self._repository.list_history(query)
 
     def read(
         self,

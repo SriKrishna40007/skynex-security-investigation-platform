@@ -30,4 +30,7 @@ __all__ = [
     "ReasoningResponse",
     "Risk",
     "Summary",
+    "InvestigationHistoryCollectionResponse",
 ]
+
+from .history_collection import InvestigationHistoryCollectionResponse
