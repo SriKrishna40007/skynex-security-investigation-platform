@@ -8,4 +8,7 @@ __all__ = [
     "RoleRepository",
     "SessionRepository",
     "UserRepository",
+    "DashboardRepository",
 ]
+
+from .dashboard_repository import DashboardRepository
