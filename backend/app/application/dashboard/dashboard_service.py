@@ -1,6 +1,9 @@
 from app.repositories import DashboardRepository
 from app.schemas.dashboard import (
     DashboardActivityResponse,
+    DashboardAnalyticsResponse,
+    InvestigationTypeDistribution,
+    SeverityDistribution,
     DashboardSummaryResponse,
 )
 
@@ -51,3 +54,23 @@ class DashboardService:
             )
             for record in records
         ]
+
+    def analytics(
+        self,
+    ) -> DashboardAnalyticsResponse:
+        """
+        Returns dashboard analytics for charts and widgets.
+        """
+
+        data = self.repository.analytics()
+
+        return DashboardAnalyticsResponse(
+            investigation_trend=data["investigation_trend"],
+            average_risk_trend=data["average_risk_trend"],
+            severity_distribution=SeverityDistribution(
+                **data["severity_distribution"],
+            ),
+            investigation_type_distribution=InvestigationTypeDistribution(
+                **data["investigation_type_distribution"],
+            ),
+        )

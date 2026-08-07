@@ -183,3 +183,31 @@ async def test_terraform_endpoint_response_is_serializable(
     assert payload["attack_path_analysis"]["risk"] == "CRITICAL"
     assert payload["risk"]["severity"] == "MEDIUM"
     assert payload["reasoning"]["severity"] == "MEDIUM"
+
+
+class _DeleteUser:
+    id = "owner-1"
+
+
+def test_delete_investigation_returns_204(monkeypatch):
+    service = Mock()
+    service.delete.return_value = True
+
+    monkeypatch.setattr(
+        endpoint,
+        "InvestigationPersistenceService",
+        Mock(return_value=service),
+    )
+
+    response = endpoint.delete_investigation(
+        investigation_id="investigation-1",
+        current_user=_DeleteUser(),
+        db=Mock(),
+    )
+
+    service.delete.assert_called_once_with(
+        owner_id="owner-1",
+        investigation_id="investigation-1",
+    )
+
+    assert response is None

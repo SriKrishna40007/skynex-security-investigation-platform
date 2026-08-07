@@ -7,6 +7,7 @@ from app.core.database import get_db
 from app.repositories import DashboardRepository
 from app.schemas.dashboard import (
     DashboardActivityResponse,
+    DashboardAnalyticsResponse,
     DashboardSummaryResponse,
 )
 
@@ -55,3 +56,21 @@ def dashboard_activity(
     service = DashboardService(repository)
 
     return service.activity(limit)
+
+
+@router.get(
+    "/analytics",
+    response_model=DashboardAnalyticsResponse,
+)
+def dashboard_analytics(
+    db: Session = Depends(get_db),
+    current_user=Depends(
+        require_role(
+            "admin",
+            "investigator",
+        )
+    ),
+) -> DashboardAnalyticsResponse:
+    repository = DashboardRepository(db)
+    service = DashboardService(repository)
+    return service.analytics()

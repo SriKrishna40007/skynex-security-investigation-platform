@@ -4,10 +4,13 @@ from sqlalchemy.orm import Session
 from app.api.v1.dependencies.rbac import require_role
 from app.application.mappers import InvestigationResponseMapper
 from app.application.orchestrators import InvestigationOrchestrator
+from app.application.export import InvestigationExportService
 from app.application.services import InvestigationPersistenceService
 from app.core.database import get_db
 from app.models.user import User
 from app.repositories import InvestigationRepository
+from app.schemas.export import InvestigationExportResponse
+
 from app.schemas.investigation import (
     InvestigationHistoryCollectionResponse,
     InvestigationHistoryResponse,
@@ -112,6 +115,66 @@ def investigation_history(
         total=total,
         pages=pages,
     )
+
+
+@router.get(
+    "/{investigation_id}/export",
+    response_model=InvestigationExportResponse,
+)
+def export_investigation(
+    investigation_id: str,
+    format: str = "json",
+    current_user: User = Depends(require_role("admin", "investigator")),
+    db: Session = Depends(get_db),
+) -> InvestigationExportResponse:
+
+    repository = InvestigationRepository(db)
+    persistence = InvestigationPersistenceService(repository)
+
+    investigation = persistence.read(
+        owner_id=current_user.id,
+        investigation_id=investigation_id,
+    )
+
+    if investigation is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Investigation not found.",
+        )
+
+    exporter = InvestigationExportService()
+
+    return exporter.export(
+        investigation,
+        format,
+    )
+
+
+@router.delete(
+    "/{investigation_id}",
+    status_code=204,
+)
+def delete_investigation(
+    investigation_id: str,
+    current_user: User = Depends(require_role("admin", "investigator")),
+    db: Session = Depends(get_db),
+) -> None:
+
+    repository = InvestigationRepository(db)
+    service = InvestigationPersistenceService(repository)
+
+    deleted = service.delete(
+        owner_id=current_user.id,
+        investigation_id=investigation_id,
+    )
+
+    if not deleted:
+        raise HTTPException(
+            status_code=404,
+            detail="Investigation not found.",
+        )
+
+    return None
 
 
 @router.get(

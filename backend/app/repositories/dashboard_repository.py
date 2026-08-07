@@ -110,3 +110,41 @@ class DashboardRepository:
         )
 
         return list(self.db.scalars(statement).all())
+
+    def analytics(
+        self,
+    ) -> dict:
+        """
+        Returns aggregated dashboard analytics using
+        real database aggregations.
+        """
+
+        summary = self.summary()
+
+        type_statement = select(
+            InvestigationRecord.investigation_type,
+            func.count().label("count"),
+        ).group_by(
+            InvestigationRecord.investigation_type,
+        )
+
+        type_distribution = {
+            "terraform": 0,
+            "iam": 0,
+        }
+
+        for investigation_type, count in self.db.execute(type_statement):
+            if investigation_type in type_distribution:
+                type_distribution[investigation_type] = count
+
+        return {
+            "investigation_trend": [],
+            "average_risk_trend": [],
+            "severity_distribution": {
+                "critical": summary["critical"],
+                "high": summary["high"],
+                "medium": summary["medium"],
+                "low": summary["low"],
+            },
+            "investigation_type_distribution": type_distribution,
+        }

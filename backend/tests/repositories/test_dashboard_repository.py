@@ -79,3 +79,38 @@ def test_activity_returns_recent_investigations():
     assert result == expected
 
     db.scalars.assert_called_once()
+
+
+def test_analytics_returns_dashboard_data():
+    db = Mock()
+
+    db.execute.return_value = [
+        ("terraform", 8),
+        ("iam", 4),
+    ]
+
+    repository = DashboardRepository(db)
+
+    repository.summary = Mock(
+        return_value={
+            "critical": 2,
+            "high": 5,
+            "medium": 7,
+            "low": 3,
+        }
+    )
+
+    result = repository.analytics()
+
+    assert result["severity_distribution"]["critical"] == 2
+    assert result["severity_distribution"]["high"] == 5
+    assert result["severity_distribution"]["medium"] == 7
+    assert result["severity_distribution"]["low"] == 3
+
+    assert result["investigation_trend"] == []
+    assert result["average_risk_trend"] == []
+
+    assert result["investigation_type_distribution"] == {
+        "terraform": 8,
+        "iam": 4,
+    }

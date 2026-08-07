@@ -62,3 +62,37 @@ def test_dashboard_service_returns_activity():
     assert response[0].severity == "HIGH"
     assert response[0].summary == "Terraform investigation"
     assert response[0].risk_score == 78.5
+
+
+def test_dashboard_service_returns_analytics():
+    repository = Mock()
+
+    repository.analytics.return_value = {
+        "investigation_trend": [],
+        "average_risk_trend": [],
+        "severity_distribution": {
+            "critical": 1,
+            "high": 2,
+            "medium": 3,
+            "low": 4,
+        },
+        "investigation_type_distribution": {
+            "terraform": 6,
+            "iam": 2,
+        },
+    }
+
+    service = DashboardService(repository)
+
+    response = service.analytics()
+
+    assert response.severity_distribution.critical == 1
+    assert response.severity_distribution.high == 2
+    assert response.severity_distribution.medium == 3
+    assert response.severity_distribution.low == 4
+
+    assert response.investigation_type_distribution.terraform == 6
+    assert response.investigation_type_distribution.iam == 2
+
+    assert response.investigation_trend == []
+    assert response.average_risk_trend == []

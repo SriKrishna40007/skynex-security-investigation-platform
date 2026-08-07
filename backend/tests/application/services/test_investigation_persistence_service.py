@@ -216,3 +216,23 @@ def test_service_does_not_modify_canonical_investigation():
     assert investigation.analysis == original_analysis
     assert investigation.summary == "Canonical state"
     assert investigation.risk_score == 55.0
+
+
+def test_delete_delegates_to_repository():
+    repository = Mock()
+
+    repository.delete.return_value = True
+
+    service = InvestigationPersistenceService(repository)
+
+    result = service.delete(
+        owner_id="owner-1",
+        investigation_id="investigation-1",
+    )
+
+    assert result is True
+
+    repository.delete.assert_called_once_with(
+        owner_id="owner-1",
+        investigation_id="investigation-1",
+    )

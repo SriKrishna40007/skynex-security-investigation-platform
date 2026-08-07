@@ -174,3 +174,31 @@ class InvestigationRepository:
                 owner_id=owner_id,
             )
         )
+
+    def delete(
+        self,
+        owner_id: str,
+        investigation_id: str,
+    ) -> bool:
+        """
+        Deletes an investigation owned by the specified user.
+
+        Returns True if deleted, otherwise False.
+        """
+
+        record = (
+            self.db.query(InvestigationRecord)
+            .filter(
+                InvestigationRecord.id == investigation_id,
+                InvestigationRecord.owner_id == owner_id,
+            )
+            .first()
+        )
+
+        if record is None:
+            return False
+
+        self.db.delete(record)
+        self.db.commit()
+
+        return True

@@ -1,3 +1,5 @@
+from unittest.mock import Mock
+
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 
@@ -246,3 +248,43 @@ def test_repository_persists_serialized_result():
         assert loaded.result["risk"]["severity"] == "MEDIUM"
     finally:
         db.close()
+
+
+def test_delete_returns_true_when_record_exists():
+    db = Mock()
+
+    record = Mock()
+
+    query = db.query.return_value
+    query.filter.return_value.first.return_value = record
+
+    repository = InvestigationRepository(db)
+
+    result = repository.delete(
+        owner_id="owner-1",
+        investigation_id="investigation-1",
+    )
+
+    assert result is True
+
+    db.delete.assert_called_once_with(record)
+    db.commit.assert_called_once()
+
+
+def test_delete_returns_false_when_record_missing():
+    db = Mock()
+
+    query = db.query.return_value
+    query.filter.return_value.first.return_value = None
+
+    repository = InvestigationRepository(db)
+
+    result = repository.delete(
+        owner_id="owner-1",
+        investigation_id="missing",
+    )
+
+    assert result is False
+
+    db.delete.assert_not_called()
+    db.commit.assert_not_called()

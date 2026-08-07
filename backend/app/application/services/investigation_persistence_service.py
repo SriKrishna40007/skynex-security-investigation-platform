@@ -68,6 +68,20 @@ class InvestigationPersistenceService:
 
         return self._repository.list_history(query)
 
+    def delete(
+        self,
+        owner_id: str,
+        investigation_id: str,
+    ) -> bool:
+        """
+        Deletes an investigation owned by the authenticated user.
+        """
+
+        return self._repository.delete(
+            owner_id=owner_id,
+            investigation_id=investigation_id,
+        )
+
     def read(
         self,
         *,
