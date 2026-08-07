@@ -91,3 +91,22 @@ class DashboardRepository:
             "low": row.low or 0,
             "average_risk_score": float(row.average_risk_score or 0),
         }
+
+    def activity(
+        self,
+        limit: int = 10,
+    ) -> list[InvestigationRecord]:
+        """
+        Returns the most recent investigations for the dashboard
+        activity feed.
+        """
+
+        statement = (
+            select(InvestigationRecord)
+            .order_by(
+                InvestigationRecord.created_at.desc(),
+            )
+            .limit(limit)
+        )
+
+        return list(self.db.scalars(statement).all())

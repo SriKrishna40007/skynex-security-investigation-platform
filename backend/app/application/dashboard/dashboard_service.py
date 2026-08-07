@@ -1,5 +1,8 @@
 from app.repositories import DashboardRepository
-from app.schemas.dashboard import DashboardSummaryResponse
+from app.schemas.dashboard import (
+    DashboardActivityResponse,
+    DashboardSummaryResponse,
+)
 
 
 class DashboardService:
@@ -25,3 +28,26 @@ class DashboardService:
         return DashboardSummaryResponse(
             **metrics,
         )
+
+    def activity(
+        self,
+        limit: int = 10,
+    ) -> list[DashboardActivityResponse]:
+        """
+        Returns recent dashboard activity.
+        """
+
+        records = self.repository.activity(limit)
+
+        return [
+            DashboardActivityResponse(
+                id=record.id,
+                investigation_type=record.investigation_type,
+                status=record.status,
+                severity=record.severity,
+                summary=record.summary,
+                risk_score=record.risk_score,
+                created_at=record.created_at,
+            )
+            for record in records
+        ]

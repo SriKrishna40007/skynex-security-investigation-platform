@@ -63,3 +63,19 @@ def test_summary_returns_zero_when_database_is_empty():
         "low": 0,
         "average_risk_score": 0.0,
     }
+
+
+def test_activity_returns_recent_investigations():
+    db = Mock()
+
+    expected = ["record-1", "record-2", "record-3"]
+
+    db.scalars.return_value.all.return_value = expected
+
+    repository = DashboardRepository(db)
+
+    result = repository.activity(limit=3)
+
+    assert result == expected
+
+    db.scalars.assert_called_once()
