@@ -2,7 +2,7 @@ import StatCard from "./StatCard";
 
 export default function StatsGrid() {
   return (
-    <section className="stats-grid">
+    <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
       <StatCard
         title="Security Score"
         value={91}

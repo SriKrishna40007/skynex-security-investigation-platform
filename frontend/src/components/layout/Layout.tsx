@@ -1,5 +1,4 @@
 import type { ReactNode } from "react";
-import Sidebar from "./Sidebar";
 
 type LayoutProps = {
   title: string;
@@ -11,16 +10,18 @@ export default function Layout({
   children,
 }: LayoutProps) {
   return (
-    <div className="app">
-      <Sidebar />
+    <section className="space-y-6">
+      <header>
+        <h2 className="text-2xl font-semibold tracking-tight text-white">
+          {title}
+        </h2>
 
-      <main className="content">
-        <header className="page-header">
-          <h2>{title}</h2>
-        </header>
+        <p className="mt-1 text-sm text-slate-500">
+          Security investigation workspace
+        </p>
+      </header>
 
-        {children}
-      </main>
-    </div>
+      {children}
+    </section>
   );
 }

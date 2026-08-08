@@ -1,6 +1,13 @@
-import "./App.css";
-import AppRouter from "./routes/AppRouter";
+import { AuthProvider } from "@/auth/AuthProvider";
+import { InvestigationProvider } from "@/investigations/InvestigationProvider";
+import AppRouter from "@/routes/AppRouter";
 
 export default function App() {
-  return <AppRouter />;
+  return (
+    <AuthProvider>
+      <InvestigationProvider>
+        <AppRouter />
+      </InvestigationProvider>
+    </AuthProvider>
+  );
 }
