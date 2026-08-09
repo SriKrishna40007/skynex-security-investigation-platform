@@ -10,6 +10,7 @@ from app.application.auth import (
     RegisterUserUseCase,
 )
 from app.core.database import get_db
+from app.core.logging import security_event
 from app.exceptions import (
     InvalidCredentialsError,
     UserAlreadyExistsError,
@@ -75,12 +76,27 @@ def login(
     user_agent = http_request.headers.get("user-agent")
 
     try:
-        return use_case.execute(
+        response = use_case.execute(
             request,
             ip_address=client_host,
             user_agent=user_agent,
         )
+
+        security_event(
+            "auth.login",
+            success=True,
+            ip_address=client_host,
+            user_agent=user_agent,
+        )
+
+        return response
     except InvalidCredentialsError as exc:
+        security_event(
+            "auth.login",
+            success=False,
+            ip_address=client_host,
+            reason="invalid_credentials",
+        )
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail=str(exc),
@@ -125,7 +141,17 @@ def logout(
 
     try:
         use_case.execute(request.refresh_token)
+
+        security_event(
+            "auth.logout",
+            success=True,
+        )
     except InvalidCredentialsError as exc:
+        security_event(
+            "auth.logout",
+            success=False,
+            reason="invalid_refresh_token",
+        )
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail=str(exc),
