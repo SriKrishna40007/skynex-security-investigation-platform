@@ -11,40 +11,21 @@ import type {
 export type InvestigationContextValue = {
   investigations: Investigation[];
 
+  isLoading: boolean;
+
   getById(
     id: string,
-  ): Investigation | undefined;
+  ): Promise<Investigation | undefined>;
 
   createAndStart(
     input: CreateInvestigationInput,
-  ): Investigation | undefined;
+  ): Promise<Investigation>;
 
-  start(
+  deleteInvestigation(
     id: string,
-  ): Investigation | undefined;
+  ): Promise<void>;
 
-  setAnalyzing(
-    id: string,
-  ): Investigation | undefined;
-
-  complete(
-    id: string,
-    results: Pick<
-      Investigation,
-      | "risk"
-      | "riskScore"
-      | "resources"
-      | "findings"
-      | "attackPaths"
-      | "findingsList"
-    >,
-  ): Investigation | undefined;
-
-  fail(
-    id: string,
-  ): Investigation | undefined;
-
-  refresh(): void;
+  refresh(): Promise<void>;
 };
 
 export const InvestigationContext =

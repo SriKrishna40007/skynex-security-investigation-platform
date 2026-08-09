@@ -26,7 +26,9 @@ export type InvestigationType =
   | "Cloud Security"
   | "IAM Analysis"
   | "Infrastructure Security"
-  | "Attack Path Analysis";
+  | "Attack Path Analysis"
+  | "Terraform"
+  | "IAM";
 
 export type InvestigationFinding = {
   id: string;

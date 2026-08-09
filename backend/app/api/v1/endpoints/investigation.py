@@ -49,12 +49,15 @@ async def investigate_terraform(
     repository = InvestigationRepository(db)
     persistence_service = InvestigationPersistenceService(repository)
 
-    persistence_service.persist(
+    record = persistence_service.persist(
         owner_id=current_user.id,
         investigation_type="terraform",
         investigation=result,
         response=response,
     )
+
+    if isinstance(record.id, str):
+        response.id = record.id
 
     return response
 

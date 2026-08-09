@@ -1,30 +1,30 @@
 import type {
-  CloudProvider,
   Investigation,
-  InvestigationEnvironment,
-  InvestigationType,
 } from "@/types/investigation";
 
 export type CreateInvestigationInput = {
   name: string;
-  provider: CloudProvider;
-  environment: InvestigationEnvironment;
-  type: InvestigationType;
+  provider: Investigation["provider"];
+  environment: Investigation["environment"];
+  type: Investigation["type"];
+
+  terraformFile?: File;
+  source?: string;
+  target?: string;
 };
 
 export interface InvestigationRepository {
   create(
     input: CreateInvestigationInput,
-  ): Investigation;
+  ): Promise<Investigation>;
 
   getById(
     id: string,
-  ): Investigation | undefined;
+  ): Promise<Investigation | undefined>;
 
-  update(
+  delete(
     id: string,
-    patch: Partial<Omit<Investigation, "id">>,
-  ): Investigation | undefined;
+  ): Promise<void>;
 
-  list(): Investigation[];
+  list(): Promise<Investigation[]>;
 }

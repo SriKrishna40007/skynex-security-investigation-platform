@@ -1,10 +1,10 @@
 import type { Investigation } from "@/types/investigation";
-import type { InvestigationRepository } from "@/repositories/InvestigationRepository";
+import type { LocalInvestigationRepository } from "@/repositories/LocalInvestigationRepository";
 
 export class InvestigationExecutionService {
-  private readonly repository: InvestigationRepository;
+  private readonly repository: LocalInvestigationRepository;
 
-  constructor(repository: InvestigationRepository) {
+  constructor(repository: LocalInvestigationRepository) {
     this.repository = repository;
   }
 

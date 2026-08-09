@@ -2,67 +2,57 @@ import { useState } from "react";
 import {
   ArrowLeft,
   ArrowRight,
-  Cloud,
+  FileCode2,
   ShieldCheck,
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 
 import { useInvestigations } from "@/investigations/useInvestigations";
 
-
-
-
-
-import type {
-  CloudProvider,
-  InvestigationEnvironment,
-  InvestigationType,
-} from "@/types/investigation";
-
 export default function NewInvestigation() {
   const navigate = useNavigate();
-
   const { createAndStart } = useInvestigations();
 
+  const [file, setFile] = useState<File | null>(null);
+  const [source, setSource] = useState("");
+  const [target, setTarget] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const [name, setName] = useState(
-    "Production Cloud Security Review",
-  );
+  const isValid =
+    file !== null &&
+    source.trim().length > 0 &&
+    target.trim().length > 0;
 
-  const [provider, setProvider] =
-    useState<CloudProvider>("AWS");
-
-  const [environment, setEnvironment] =
-    useState<InvestigationEnvironment>(
-      "Production",
-    );
-
-  const [type, setType] =
-    useState<InvestigationType>(
-      "Cloud Security",
-    );
-
-  const isValid = name.trim().length >= 3;
-
-  function handleStart() {
-    if (!isValid) {
+  async function handleStart() {
+    if (!isValid || !file) {
       return;
     }
 
-    const started = createAndStart({
-      name: name.trim(),
-      provider,
-      environment,
-      type,
-    });
+    setIsSubmitting(true);
+    setError(null);
 
-    if (!started) {
-      return;
+    try {
+      const investigation = await createAndStart({
+        name: `${file.name} Investigation`,
+        provider: "AWS",
+        environment: "Production",
+        type: "Terraform",
+        terraformFile: file,
+        source: source.trim(),
+        target: target.trim(),
+      });
+
+      navigate(`/app/investigations/${investigation.id}`);
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Investigation execution failed.",
+      );
+    } finally {
+      setIsSubmitting(false);
     }
-
-    navigate(
-      `/app/investigations/${started.id}`,
-    );
   }
 
   return (
@@ -77,16 +67,16 @@ export default function NewInvestigation() {
 
       <div>
         <p className="text-xs font-semibold uppercase tracking-[0.18em] text-blue-400">
-          Investigation Setup
+          Security Investigation
         </p>
 
         <h1 className="mt-2 text-3xl font-semibold tracking-tight text-white">
-          New Investigation
+          New Terraform Investigation
         </h1>
 
         <p className="mt-2 text-sm text-slate-400">
-          Define the investigation scope before SKYNEX analyzes
-          your infrastructure.
+          Upload Terraform infrastructure and define the topology
+          endpoints SKYNEX should investigate.
         </p>
       </div>
 
@@ -98,11 +88,12 @@ export default function NewInvestigation() {
 
           <div>
             <h2 className="text-sm font-semibold text-white">
-              Investigation configuration
+              Terraform investigation
             </h2>
 
             <p className="mt-1 text-xs text-slate-500">
-              These fields define the initial investigation context.
+              SKYNEX will parse, correlate, analyze, score, and
+              persist the investigation.
             </p>
           </div>
         </div>
@@ -110,92 +101,73 @@ export default function NewInvestigation() {
         <div className="grid gap-5 md:grid-cols-2">
           <label className="block md:col-span-2">
             <span className="text-sm font-medium text-slate-300">
-              Investigation name
+              Terraform file
             </span>
 
-            <input
-              type="text"
-              value={name}
-              onChange={(event) =>
-                setName(event.target.value)
-              }
-              placeholder="Production Cloud Security Review"
-              className="mt-2 h-11 w-full rounded-xl border border-white/[0.08] bg-white/[0.02] px-3 text-sm text-white outline-none transition focus:border-blue-400/50"
-            />
+            <div className="mt-2 rounded-xl border border-dashed border-white/[0.12] bg-white/[0.02] p-5">
+              <div className="flex items-center gap-3">
+                <FileCode2 className="h-5 w-5 text-blue-400" />
 
-            {!isValid && (
-              <span className="mt-2 block text-xs text-rose-400">
-                Investigation name must contain at least 3 characters.
-              </span>
-            )}
-          </label>
+                <input
+                  type="file"
+                  accept=".tf,.tf.json"
+                  onChange={(event) =>
+                    setFile(event.target.files?.[0] ?? null)
+                  }
+                  className="block w-full text-sm text-slate-400 file:mr-4 file:rounded-lg file:border-0 file:bg-blue-500/10 file:px-3 file:py-2 file:text-sm file:font-medium file:text-blue-300"
+                />
+              </div>
 
-          <label className="block">
-            <span className="text-sm font-medium text-slate-300">
-              Cloud provider
-            </span>
-
-            <div className="relative mt-2">
-              <Cloud className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
-
-              <select
-                value={provider}
-                onChange={(event) =>
-                  setProvider(
-                    event.target.value as CloudProvider,
-                  )
-                }
-                className="h-11 w-full appearance-none rounded-xl border border-white/[0.08] bg-[#0b1222] pl-10 pr-3 text-sm text-white outline-none focus:border-blue-400/50"
-              >
-                <option>AWS</option>
-                <option>Microsoft Azure</option>
-                <option>Google Cloud</option>
-              </select>
+              {file && (
+                <p className="mt-3 text-xs text-slate-500">
+                  Selected: {file.name}
+                </p>
+              )}
             </div>
           </label>
 
           <label className="block">
             <span className="text-sm font-medium text-slate-300">
-              Environment
+              Source resource
             </span>
 
-            <select
-              value={environment}
-              onChange={(event) =>
-                setEnvironment(
-                  event.target.value as InvestigationEnvironment,
-                )
-              }
-              className="mt-2 h-11 w-full rounded-xl border border-white/[0.08] bg-[#0b1222] px-3 text-sm text-white outline-none focus:border-blue-400/50"
-            >
-              <option>Production</option>
-              <option>Staging</option>
-              <option>Development</option>
-              <option>Security</option>
-            </select>
+            <input
+              type="text"
+              value={source}
+              onChange={(event) => setSource(event.target.value)}
+              placeholder="e.g. aws_instance.web"
+              className="mt-2 h-11 w-full rounded-xl border border-white/[0.08] bg-white/[0.02] px-3 text-sm text-white outline-none transition focus:border-blue-400/50"
+            />
+
+            <span className="mt-2 block text-xs text-slate-500">
+              Starting point for attack-path analysis.
+            </span>
           </label>
 
-          <label className="block md:col-span-2">
+          <label className="block">
             <span className="text-sm font-medium text-slate-300">
-              Investigation type
+              Target resource
             </span>
 
-            <select
-              value={type}
-              onChange={(event) =>
-                setType(
-                  event.target.value as InvestigationType,
-                )
-              }
-              className="mt-2 h-11 w-full rounded-xl border border-white/[0.08] bg-[#0b1222] px-3 text-sm text-white outline-none focus:border-blue-400/50"
-            >
-              <option>Cloud Security</option>
-              <option>IAM Analysis</option>
-              <option>Infrastructure Security</option>
-              <option>Attack Path Analysis</option>
-            </select>
+            <input
+              type="text"
+              value={target}
+              onChange={(event) => setTarget(event.target.value)}
+              placeholder="e.g. aws_s3_bucket.data"
+              className="mt-2 h-11 w-full rounded-xl border border-white/[0.08] bg-white/[0.02] px-3 text-sm text-white outline-none transition focus:border-blue-400/50"
+            />
+
+            <span className="mt-2 block text-xs text-slate-500">
+              Destination resource to investigate.
+            </span>
           </label>
         </div>
+
+        {error && (
+          <div className="mt-5 rounded-xl border border-rose-400/20 bg-rose-400/5 px-4 py-3 text-sm text-rose-300">
+            {error}
+          </div>
+        )}
 
         <div className="mt-6 flex flex-col-reverse justify-end gap-3 border-t border-white/[0.07] pt-6 sm:flex-row">
           <Link
@@ -208,10 +180,13 @@ export default function NewInvestigation() {
           <button
             type="button"
             onClick={handleStart}
-            disabled={!isValid}
+            disabled={!isValid || isSubmitting}
             className="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-500 to-violet-500 px-5 text-sm font-semibold text-white transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            Start Investigation
+            {isSubmitting
+              ? "Running Investigation..."
+              : "Start Investigation"}
+
             <ArrowRight className="h-4 w-4" />
           </button>
         </div>

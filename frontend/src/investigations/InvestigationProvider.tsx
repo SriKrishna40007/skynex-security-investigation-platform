@@ -1,24 +1,26 @@
 import {
+  useCallback,
+  useEffect,
   useMemo,
   useState,
   type ReactNode,
 } from "react";
 
 import {
-  investigationRepository,
-} from "@/repositories";
+  ApiInvestigationRepository,
+} from "@/repositories/ApiInvestigationRepository";
 
 import type {
   CreateInvestigationInput,
 } from "@/repositories/InvestigationRepository";
 
-import {
-  InvestigationExecutionService,
-} from "@/services/InvestigationExecutionService";
-
 import type {
   Investigation,
 } from "@/types/investigation";
+
+import {
+  useAuth,
+} from "@/auth/useAuth";
 
 import {
   InvestigationContext,
@@ -31,107 +33,120 @@ type InvestigationProviderProps = {
 export function InvestigationProvider({
   children,
 }: InvestigationProviderProps) {
-  const [, setVersion] = useState(0);
+  const { state: authState } = useAuth();
 
-  const executionService = useMemo(
+  const accessToken =
+    authState.session?.accessToken;
+
+  const repository = useMemo(
     () =>
-      new InvestigationExecutionService(
-        investigationRepository,
-      ),
-    [],
+      accessToken
+        ? new ApiInvestigationRepository(
+            accessToken,
+          )
+        : null,
+    [accessToken],
   );
 
-  function refresh() {
-    setVersion((version) => version + 1);
-  }
+  const [investigations, setInvestigations] =
+    useState<Investigation[]>([]);
 
-  function getById(
-    id: string,
-  ): Investigation | undefined {
-    return investigationRepository.getById(id);
-  }
+  const [isLoading, setIsLoading] =
+    useState(false);
 
-  function createAndStart(
-    input: CreateInvestigationInput,
-  ): Investigation | undefined {
-    const investigation =
-      investigationRepository.create(input);
+  const refresh = useCallback(
+    async () => {
+      if (!repository) {
+        setInvestigations([]);
+        return;
+      }
 
-    const started =
-      executionService.start(investigation.id);
+      setIsLoading(true);
 
-    refresh();
+      try {
+        const records =
+          await repository.list();
 
-    return started;
-  }
+        setInvestigations(records);
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [repository],
+  );
 
-  function start(
-    id: string,
-  ): Investigation | undefined {
-    const result =
-      executionService.start(id);
+  useEffect(() => {
+    void refresh();
+  }, [refresh]);
 
-    refresh();
+  const getById = useCallback(
+    async (
+      id: string,
+    ): Promise<
+      Investigation | undefined
+    > => {
+      if (!repository) {
+        return undefined;
+      }
 
-    return result;
-  }
+      return repository.getById(id);
+    },
+    [repository],
+  );
 
-  function setAnalyzing(
-    id: string,
-  ): Investigation | undefined {
-    const result =
-      executionService.setAnalyzing(id);
+  const createAndStart = useCallback(
+    async (
+      input: CreateInvestigationInput,
+    ): Promise<Investigation> => {
+      if (!repository) {
+        throw new Error(
+          "Authentication required.",
+        );
+      }
 
-    refresh();
+      const investigation =
+        await repository.create(input);
 
-    return result;
-  }
+      await refresh();
 
-  function complete(
-    id: string,
-    results: Pick<
-      Investigation,
-      | "risk"
-      | "riskScore"
-      | "resources"
-      | "findings"
-      | "attackPaths"
-      | "findingsList"
-    >,
-  ): Investigation | undefined {
-    const result =
-      executionService.complete(
-        id,
-        results,
-      );
+      return investigation;
+    },
+    [repository, refresh],
+  );
 
-    refresh();
+  const deleteInvestigation = useCallback(
+    async (id: string): Promise<void> => {
+      if (!repository) {
+        throw new Error(
+          "Authentication required.",
+        );
+      }
 
-    return result;
-  }
+      await repository.delete(id);
 
-  function fail(
-    id: string,
-  ): Investigation | undefined {
-    const result =
-      executionService.fail(id);
+      await refresh();
+    },
+    [repository, refresh],
+  );
 
-    refresh();
-
-    return result;
-  }
-
-  const value = {
-    investigations:
-      investigationRepository.list(),
-    getById,
-    createAndStart,
-    start,
-    setAnalyzing,
-    complete,
-    fail,
-    refresh,
-  };
+  const value = useMemo(
+    () => ({
+      investigations,
+      isLoading,
+      getById,
+      createAndStart,
+      deleteInvestigation,
+      refresh,
+    }),
+    [
+      investigations,
+      isLoading,
+      getById,
+      createAndStart,
+      deleteInvestigation,
+      refresh,
+    ],
+  );
 
   return (
     <InvestigationContext.Provider

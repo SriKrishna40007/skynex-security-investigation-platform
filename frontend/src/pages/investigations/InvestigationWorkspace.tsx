@@ -1,4 +1,9 @@
 import {
+  useEffect,
+  useState,
+} from "react";
+
+import {
   Activity,
   ArrowLeft,
   Bot,
@@ -9,6 +14,8 @@ import {
 import { Link, useParams } from "react-router-dom";
 
 import { useInvestigations } from "@/investigations/useInvestigations";
+
+import type { Investigation } from "@/types/investigation";
 
 
 
@@ -22,9 +29,53 @@ export default function InvestigationWorkspace() {
 
   const { getById } = useInvestigations();
 
-  const investigation = id
-    ? getById(id)
-    : undefined;
+  const [investigation, setInvestigation] =
+    useState<Investigation | undefined>();
+
+  const [isLoading, setIsLoading] =
+    useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadInvestigation() {
+      if (!id) {
+        setInvestigation(undefined);
+        setIsLoading(false);
+        return;
+      }
+
+      setIsLoading(true);
+
+      try {
+        const result = await getById(id);
+
+        if (!cancelled) {
+          setInvestigation(result);
+        }
+      } finally {
+        if (!cancelled) {
+          setIsLoading(false);
+        }
+      }
+    }
+
+    void loadInvestigation();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [id, getById]);
+
+  if (isLoading) {
+    return (
+      <main className="min-h-[70vh] flex items-center justify-center">
+        <div className="text-sm text-slate-400">
+          Loading investigation...
+        </div>
+      </main>
+    );
+  }
 
   if (!investigation) {
     return (

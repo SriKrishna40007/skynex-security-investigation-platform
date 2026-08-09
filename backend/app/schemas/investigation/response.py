@@ -61,13 +61,14 @@ class ReasoningResponse(BaseModel):
 
 
 class InvestigationResponse(BaseModel):
+    id: str | None = None
     """
     Stable public contract for a SKYNEX investigation.
-
-    The original attack_path, blast_radius, risk_score, and summary fields
-    remain available for backward compatibility while richer evidence-aware
-    analysis is exposed through optional typed fields.
     """
+
+    id: str | None = None
+
+
 
     attack_path: list[str] = Field(default_factory=list)
     blast_radius: list[str] = Field(default_factory=list)

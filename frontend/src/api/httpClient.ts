@@ -20,7 +20,8 @@ export async function apiRequest<T>(
 
   if (
     !requestHeaders.has("Content-Type") &&
-    requestOptions.body
+    requestOptions.body &&
+    !(requestOptions.body instanceof FormData)
   ) {
     requestHeaders.set(
       "Content-Type",

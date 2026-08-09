@@ -8,8 +8,11 @@ import type {
 
 import type {
   CreateInvestigationInput,
-  InvestigationRepository,
 } from "./InvestigationRepository";
+
+import type {
+  LocalInvestigationRepository,
+} from "./LocalInvestigationRepository";
 
 function generateInvestigationId(): string {
   return `inv-${crypto.randomUUID()}`;
@@ -20,7 +23,7 @@ function createTimestamp(): string {
 }
 
 export class InMemoryInvestigationRepository
-  implements InvestigationRepository
+  implements LocalInvestigationRepository
 {
   private readonly records: Investigation[];
 

@@ -1,6 +1,7 @@
-import {
+export {
   InMemoryInvestigationRepository,
 } from "./InMemoryInvestigationRepository";
 
-export const investigationRepository =
-  new InMemoryInvestigationRepository();
+export type {
+  LocalInvestigationRepository,
+} from "./LocalInvestigationRepository";
