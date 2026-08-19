@@ -3,14 +3,20 @@ from __future__ import annotations
 from collections import deque
 
 from app.engines.graph.models import KnowledgeGraph
-from app.engines.graph.policies import RelationshipSemantics
+from app.engines.graph.traversal import SecurityNeighborResolver
 
 
 class PathFinder:
     """
-    Finds the shortest path between two nodes using
-    Breadth-First Search (BFS).
+    Finds the shortest security-semantic path between two graph nodes.
+
+    Canonical graph direction is preserved. SecurityNeighborResolver determines
+    whether propagation follows an edge forward or in reverse according to
+    relationship semantics.
     """
+
+    def __init__(self) -> None:
+        self._neighbors = SecurityNeighborResolver()
 
     def shortest_path(
         self,
@@ -18,7 +24,6 @@ class PathFinder:
         start: str,
         target: str,
     ) -> list[str]:
-
         if graph.get_node(start) is None:
             return []
 
@@ -39,18 +44,18 @@ class PathFinder:
 
             visited.add(current)
 
-            for edge in graph.neighbors(current):
-                if not RelationshipSemantics.is_security_traversable(
-                    edge.relationship_type
-                ):
+            for neighbor in self._neighbors.resolve(
+                graph,
+                current,
+            ):
+                if neighbor.resource_id in visited:
                     continue
 
-                if edge.target not in visited:
-                    queue.append(
-                        (
-                            edge.target,
-                            path + [edge.target],
-                        )
+                queue.append(
+                    (
+                        neighbor.resource_id,
+                        path + [neighbor.resource_id],
                     )
+                )
 
         return []

@@ -2,6 +2,19 @@ const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL ??
   "http://localhost:8000/api/v1";
 
+export class ApiError extends Error {
+  readonly status: number;
+
+  constructor(
+    message: string,
+    status: number,
+  ) {
+    super(message);
+    this.name = "ApiError";
+    this.status = status;
+  }
+}
+
 export type ApiRequestOptions = RequestInit & {
   accessToken?: string;
 };
@@ -59,7 +72,10 @@ export async function apiRequest<T>(
       // does not contain a JSON error body.
     }
 
-    throw new Error(message);
+    throw new ApiError(
+      message,
+      response.status,
+    );
   }
 
   if (response.status === 204) {

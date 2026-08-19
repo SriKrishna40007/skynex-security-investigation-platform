@@ -10,8 +10,22 @@ import type {
   InvestigationRepository,
 } from "./InvestigationRepository";
 
+import type {
+  RemediationResponse,
+} from "@/api/investigations/investigationTypes";
+
 type BackendInvestigationResponse = {
   id?: string;
+
+  resources: Array<{
+    id: string;
+    name: string;
+    type: string;
+    provider: string;
+    tags: Record<string, string>;
+    metadata: Record<string, unknown>;
+  }>;
+
   attack_path: string[];
   blast_radius: string[];
   risk_score: number;
@@ -50,6 +64,8 @@ type BackendInvestigationResponse = {
     recommendations: string[];
     severity: string;
   } | null;
+
+  remediations: RemediationResponse[];
 };
 
 type BackendHistoryItem = {
@@ -138,10 +154,7 @@ function mapResponse(
     risk: mapRiskSeverity(severity),
     riskScore: response.risk_score,
 
-    resources:
-      response.blast_radius_analysis
-        ?.affected_resource_count ??
-      response.blast_radius.length,
+    resources: response.resources.length,
 
     findings: findings.length,
 
@@ -150,6 +163,61 @@ function mapResponse(
     updated: "Just now",
 
     findingsList: findings,
+
+    attackPathAnalysis: response.attack_path_analysis
+      ? {
+          source: response.attack_path_analysis.source,
+          target: response.attack_path_analysis.target,
+          nodes: response.attack_path_analysis.nodes,
+          hopCount: response.attack_path_analysis.hop_count,
+          risk: response.attack_path_analysis.risk,
+          description: response.attack_path_analysis.description,
+          exists: response.attack_path_analysis.exists,
+        }
+      : null,
+
+    blastRadiusAnalysis: response.blast_radius_analysis
+      ? {
+          compromisedResource:
+            response.blast_radius_analysis.compromised_resource,
+          reachableResources:
+            response.blast_radius_analysis.reachable_resources,
+          affectedResourceCount:
+            response.blast_radius_analysis.affected_resource_count,
+          maximumDepth:
+            response.blast_radius_analysis.maximum_depth,
+          impacts: response.blast_radius_analysis.impacts.map((impact) => ({
+            resourceId: impact.resource_id,
+            depth: impact.depth,
+            relationshipTypes: impact.relationship_types,
+          })),
+        }
+      : null,
+
+    riskAssessment: response.risk
+      ? {
+          score: response.risk.score,
+          severity: response.risk.severity,
+          reasons: response.risk.reasons,
+        }
+      : null,
+
+    reasoning: response.reasoning
+      ? {
+          findings: response.reasoning.findings,
+          recommendations: response.reasoning.recommendations,
+          severity: response.reasoning.severity,
+        }
+      : null,
+
+    remediations: response.remediations.map((remediation) => ({
+      findingId: remediation.finding_id,
+      title: remediation.title,
+      severity: remediation.severity,
+      resourceId: remediation.resource_id,
+      steps: remediation.steps,
+      executable: remediation.executable,
+    })),
   };
 }
 
@@ -181,6 +249,11 @@ function mapHistoryItem(
 
     updated: item.created_at,
     findingsList: [],
+    attackPathAnalysis: null,
+    blastRadiusAnalysis: null,
+    riskAssessment: null,
+    reasoning: null,
+    remediations: [],
   };
 }
 

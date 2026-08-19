@@ -45,6 +45,9 @@ class DefaultRiskEngine(RiskEngine):
         else:
             severity = "LOW"
 
+        if investigation.risk_score == 0.0:
+            investigation.risk_score = float(score)
+
         investigation.analysis["risk"] = RiskAssessment(
             score=score,
             severity=severity,

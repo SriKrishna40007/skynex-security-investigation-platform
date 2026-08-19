@@ -7,6 +7,7 @@ from app.domain.models.finding import Finding
 from app.domain.models.relationship import Relationship
 from app.domain.models.resource import Resource
 from app.engines.graph.models import KnowledgeGraph
+from app.engines.investigation.models.candidate import InvestigationCandidate
 
 
 @dataclass(slots=True)
@@ -20,6 +21,8 @@ class Investigation:
     relationships: list[Relationship] = field(default_factory=list)
 
     findings: list[Finding] = field(default_factory=list)
+
+    candidates: list[InvestigationCandidate] = field(default_factory=list)
 
     analysis: dict[str, Any] = field(default_factory=dict)
 

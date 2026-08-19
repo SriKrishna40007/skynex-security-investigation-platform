@@ -108,3 +108,21 @@ def admin_user(db: Session, roles: dict[str, Role]) -> User:
     db.refresh(user)
 
     return user
+
+
+@pytest.fixture()
+def investigator_user(db: Session, roles: dict[str, Role]) -> User:
+    user = User(
+        id=str(uuid.uuid4()),
+        full_name="Test Investigator",
+        email="investigator@example.com",
+        password_hash=hash_password("InvestigatorPassword123!"),
+        is_active=True,
+        role=roles["admin"],
+    )
+
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+
+    return user

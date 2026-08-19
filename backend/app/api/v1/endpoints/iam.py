@@ -1,8 +1,9 @@
-from fastapi import APIRouter, Depends, File, UploadFile
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 
 from app.api.v1.dependencies.auth import get_current_user
 from app.application.orchestrators import InvestigationOrchestrator
 from app.models.user import User
+from app.integrations.iam.exceptions import IAMPolicyValidationError
 from app.schemas.iam.response import ScanResponse
 
 router = APIRouter(
@@ -26,7 +27,13 @@ async def scan_iam_policy(
     investigation architecture.
     """
 
-    investigation = await orchestrator.investigate_iam_upload(policy)
+    try:
+        investigation = await orchestrator.investigate_iam_upload(policy)
+    except IAMPolicyValidationError as exc:
+        raise HTTPException(
+            status_code=400,
+            detail=str(exc),
+        ) from exc
 
     iam_analysis = investigation.analysis["iam"]
 

@@ -2,6 +2,7 @@ from app.domain.models.investigation import Investigation
 from app.domain.models.relationship import Relationship
 from app.domain.models.resource import Resource
 from app.engines.blast_radius.implementations import DefaultBlastRadiusEngine
+from app.engines.graph.models import GraphEdge, GraphNode, KnowledgeGraph
 from app.engines.graph.implementations import KnowledgeGraphEngine
 
 
@@ -252,3 +253,101 @@ def test_missing_compromised_resource_produces_empty_evidence():
     assert analysis.impacts == ()
     assert analysis.affected_resource_count == 0
     assert analysis.maximum_depth == 0
+
+
+def test_blast_radius_analysis_uses_security_semantic_propagation():
+    investigation = Investigation()
+
+    investigation.resources = [
+        Resource(
+            id="instance",
+            name="instance",
+            type="aws_instance",
+            provider="terraform",
+        ),
+        Resource(
+            id="security_group",
+            name="security_group",
+            type="aws_security_group",
+            provider="terraform",
+        ),
+        Resource(
+            id="vpc",
+            name="vpc",
+            type="aws_vpc",
+            provider="terraform",
+        ),
+        Resource(
+            id="subnet",
+            name="subnet",
+            type="aws_subnet",
+            provider="terraform",
+        ),
+    ]
+
+    investigation.analysis["knowledge_graph"] = KnowledgeGraph()
+
+    for resource in investigation.resources:
+        investigation.analysis["knowledge_graph"].add_node(
+            GraphNode(
+                resource.id,
+                resource.name,
+                resource.type,
+            )
+        )
+
+    graph = investigation.analysis["knowledge_graph"]
+
+    graph.add_edge(
+        GraphEdge(
+            source="instance",
+            target="security_group",
+            relationship_type="protected_by",
+        )
+    )
+
+    graph.add_edge(
+        GraphEdge(
+            source="security_group",
+            target="vpc",
+            relationship_type="belongs_to",
+        )
+    )
+
+    graph.add_edge(
+        GraphEdge(
+            source="instance",
+            target="subnet",
+            relationship_type="deployed_in",
+        )
+    )
+
+    result = DefaultBlastRadiusEngine().analyze(
+        investigation,
+        "security_group",
+    )
+
+    analysis = result.analysis["blast_radius_analysis"]
+
+    assert analysis.reachable_resources == (
+        "security_group",
+        "vpc",
+        "instance",
+        "subnet",
+    )
+
+    assert analysis.affected_resource_count == 3
+
+    impacts = {impact.resource_id: impact for impact in analysis.impacts}
+
+    assert impacts["vpc"].depth == 1
+    assert impacts["vpc"].relationship_types == ("belongs_to",)
+
+    assert impacts["instance"].depth == 1
+    assert impacts["instance"].relationship_types == ("protected_by",)
+
+    assert impacts["subnet"].depth == 2
+    assert impacts["subnet"].relationship_types == (
+        "protected_by",
+        "deployed_in",
+    )

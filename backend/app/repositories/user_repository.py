@@ -44,7 +44,16 @@ class UserRepository:
         )
 
         self.db.add(user)
-        self.db.commit()
-        self.db.refresh(user)
+        self.db.flush()
 
+        return user
+
+    def commit(self) -> None:
+        self.db.commit()
+
+    def rollback(self) -> None:
+        self.db.rollback()
+
+    def refresh(self, user: User) -> User:
+        self.db.refresh(user)
         return user

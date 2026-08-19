@@ -5,8 +5,10 @@ from app.api.v1.dependencies.rbac import require_role
 from app.application.mappers import InvestigationResponseMapper
 from app.application.orchestrators import InvestigationOrchestrator
 from app.application.export import InvestigationExportService
+from app.application.queries import InvestigationHistoryQuery
 from app.application.services import InvestigationPersistenceService
 from app.core.database import get_db
+from app.integrations.terraform.exceptions import TerraformValidationError
 from app.models.user import User
 from app.repositories import InvestigationRepository
 from app.schemas.export import InvestigationExportResponse
@@ -38,11 +40,17 @@ async def investigate_terraform(
     db: Session = Depends(get_db),
 ) -> InvestigationResponse:
 
-    result = await orchestrator.investigate_terraform(
-        terraform_file=terraform_file,
-        source=source,
-        target=target,
-    )
+    try:
+        result = await orchestrator.investigate_terraform(
+            terraform_file=terraform_file,
+            source=source,
+            target=target,
+        )
+    except TerraformValidationError as exc:
+        raise HTTPException(
+            status_code=400,
+            detail=str(exc),
+        ) from exc
 
     response = response_mapper.map(result)
 
@@ -81,9 +89,7 @@ def investigation_history(
 
     repository = InvestigationRepository(db)
 
-    service = InvestigationPersistenceService(repository)
-
-    query = service.build_query(
+    query = InvestigationHistoryQuery(
         owner_id=current_user.id,
         page=page,
         size=size,

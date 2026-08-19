@@ -1,0 +1,17 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "WildcardAdmin",
+      "Effect": "Allow",
+      "Action": "*",
+      "Resource": "*"
+    },
+    {
+      "Sid": "IamPassRoleWildcard",
+      "Effect": "Allow",
+      "Action": "iam:PassRole",
+      "Resource": "*"
+    }
+  ]
+}

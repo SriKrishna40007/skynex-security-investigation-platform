@@ -1,0 +1,41 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "AllowReadOwnBucket",
+      "Effect": "Allow",
+      "Action": ["s3:GetObject", "s3:ListBucket"],
+      "Resource": [
+        "arn:aws:s3:::skynex-test-complex-bucket",
+        "arn:aws:s3:::skynex-test-complex-bucket/*"
+      ]
+    },
+    {
+      "Sid": "AllowDescribeEc2",
+      "Effect": "Allow",
+      "Action": "ec2:Describe*",
+      "Resource": "*"
+    },
+    {
+      "Sid": "DenyDeleteAnywhere",
+      "Effect": "Deny",
+      "Action": "s3:DeleteObject",
+      "Resource": "*"
+    },
+    {
+      "Sid": "OverprivilegedLambdaInvoke",
+      "Effect": "Allow",
+      "Action": "lambda:InvokeFunction",
+      "Resource": "*"
+    },
+    {
+      "Sid": "ConditionalAssumeRole",
+      "Effect": "Allow",
+      "Action": "sts:AssumeRole",
+      "Resource": "arn:aws:iam::123456789012:role/skynex-test-cross-account-role",
+      "Condition": {
+        "StringEquals": { "sts:ExternalId": "skynex-test-external-id" }
+      }
+    }
+  ]
+}

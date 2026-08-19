@@ -1,12 +1,14 @@
 import uuid
+from datetime import datetime
 from typing import TYPE_CHECKING
 
-from sqlalchemy import Boolean, ForeignKey, String
+from sqlalchemy import Boolean, DateTime, ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base
 
 if TYPE_CHECKING:
+    from app.models.email_verification_token import EmailVerificationToken
     from app.models.investigation import InvestigationRecord
     from app.models.role import Role
     from app.models.session import Session
@@ -43,6 +45,11 @@ class User(Base):
         nullable=False,
     )
 
+    email_verified_at: Mapped[datetime | None] = mapped_column(
+        DateTime,
+        nullable=True,
+    )
+
     role_id: Mapped[str | None] = mapped_column(
         ForeignKey("roles.id"),
         nullable=True,
@@ -56,6 +63,11 @@ class User(Base):
     sessions: Mapped[list["Session"]] = relationship(
         "Session",
         back_populates="user",
+        cascade="all, delete-orphan",
+    )
+
+    email_verification_tokens: Mapped[list["EmailVerificationToken"]] = relationship(
+        "EmailVerificationToken",
         cascade="all, delete-orphan",
     )
 

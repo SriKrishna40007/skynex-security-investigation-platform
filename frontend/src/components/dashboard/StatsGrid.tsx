@@ -1,26 +1,52 @@
+import type { DashboardSummary } from "@/api/dashboard/dashboardTypes";
+
 import StatCard from "./StatCard";
 
-export default function StatsGrid() {
+type StatsGridProps = {
+  summary: DashboardSummary | null;
+  isLoading: boolean;
+};
+
+export default function StatsGrid({
+  summary,
+  isLoading,
+}: StatsGridProps) {
+  const value = (
+    metric: number | undefined,
+  ): string | number => {
+    if (isLoading) {
+      return "—";
+    }
+
+    return metric ?? 0;
+  };
+
   return (
     <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
       <StatCard
-        title="Security Score"
-        value={91}
+        title="Average Risk Score"
+        value={
+          isLoading
+            ? "—"
+            : `${summary?.average_risk_score.toFixed(1) ?? "0.0"}`
+        }
       />
 
       <StatCard
-        title="Resources"
-        value={127}
+        title="Total Investigations"
+        value={value(
+          summary?.total_investigations,
+        )}
       />
 
       <StatCard
         title="Critical Findings"
-        value={18}
+        value={value(summary?.critical)}
       />
 
       <StatCard
-        title="Attack Paths"
-        value={6}
+        title="Failed Investigations"
+        value={value(summary?.failed)}
       />
     </section>
   );

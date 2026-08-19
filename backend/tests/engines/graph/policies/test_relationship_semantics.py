@@ -35,3 +35,18 @@ def test_policy_is_provider_neutral():
 
 def test_connects_relationship_is_security_traversable():
     assert RelationshipSemantics.is_security_traversable("connects")
+
+
+def test_protected_by_propagates_in_reverse_direction():
+    assert RelationshipSemantics.propagates_reverse("protected_by")
+    assert not RelationshipSemantics.propagates_forward("protected_by")
+
+
+def test_normal_infrastructure_relationships_propagate_forward():
+    assert RelationshipSemantics.propagates_forward("deployed_in")
+    assert RelationshipSemantics.propagates_forward("belongs_to")
+
+
+def test_non_traversable_relationship_has_no_propagation_direction():
+    assert not RelationshipSemantics.propagates_forward("descriptive_metadata")
+    assert not RelationshipSemantics.propagates_reverse("descriptive_metadata")

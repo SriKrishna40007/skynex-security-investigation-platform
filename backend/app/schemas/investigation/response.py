@@ -1,5 +1,10 @@
 from pydantic import BaseModel, Field
 
+from app.schemas.investigation.candidate import InvestigationCandidateResponse
+from app.schemas.investigation.candidate_context import CandidateContextResponse
+from app.schemas.investigation.candidate_impact import CandidateImpactAnalysisResponse
+from app.schemas.investigation.remediation_response import RemediationResponse
+from .resource_response import ResourceResponse
 
 class AttackPathAnalysisResponse(BaseModel):
     """
@@ -61,21 +66,33 @@ class ReasoningResponse(BaseModel):
 
 
 class InvestigationResponse(BaseModel):
-    id: str | None = None
     """
     Stable public contract for a SKYNEX investigation.
     """
 
     id: str | None = None
 
-
-
     attack_path: list[str] = Field(default_factory=list)
+    candidates: list[InvestigationCandidateResponse] = Field(
+        default_factory=list,
+    )
+
+    candidate_context: list[CandidateContextResponse] = Field(
+        default_factory=list,
+    )
+
+    candidate_impact: list[CandidateImpactAnalysisResponse] = Field(
+        default_factory=list,
+    )
     blast_radius: list[str] = Field(default_factory=list)
     risk_score: float = 0.0
     summary: str = ""
-
+    resources: list[ResourceResponse] = Field(default_factory=list)
     attack_path_analysis: AttackPathAnalysisResponse | None = None
     blast_radius_analysis: BlastRadiusAnalysisResponse | None = None
     risk: RiskAssessmentResponse | None = None
     reasoning: ReasoningResponse | None = None
+
+    remediations: list[RemediationResponse] = Field(
+        default_factory=list,
+    )

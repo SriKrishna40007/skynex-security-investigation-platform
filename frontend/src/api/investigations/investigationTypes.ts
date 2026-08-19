@@ -34,6 +34,15 @@ export type ReasoningResponse = {
   severity: string;
 };
 
+export type RemediationResponse = {
+  finding_id: string;
+  title: string;
+  severity: string;
+  resource_id: string;
+  steps: string[];
+  executable: boolean;
+};
+
 export type InvestigationResponse = {
   id?: string;
   attack_path: string[];
@@ -44,6 +53,7 @@ export type InvestigationResponse = {
   blast_radius_analysis: BlastRadiusAnalysisResponse | null;
   risk: RiskAssessmentResponse | null;
   reasoning: ReasoningResponse | null;
+  remediations: RemediationResponse[];
 };
 
 export type InvestigationHistoryResponse = {

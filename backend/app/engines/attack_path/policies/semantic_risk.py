@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from app.engines.graph.models import KnowledgeGraph
+from app.engines.graph.traversal import SecurityNeighborResolver
 
 
 @dataclass(frozen=True, slots=True)
@@ -37,6 +38,9 @@ class AttackPathSemanticRiskPolicy:
         "belongs_to": 1,
     }
 
+    def __init__(self) -> None:
+        self._neighbors = SecurityNeighborResolver()
+
     def evaluate(
         self,
         graph: KnowledgeGraph,
@@ -63,13 +67,6 @@ class AttackPathSemanticRiskPolicy:
 
         hop_count = len(nodes) - 1
 
-        # Relationship semantics are the primary risk signal.
-        #
-        # Path depth may increase exposure, but ordinary connectivity must
-        # not become CRITICAL solely because several traversable edges are
-        # chained together. Preserve the established three-hop connectivity
-        # contract while still allowing semantic relationships such as
-        # privilege transitions to carry greater weight.
         depth_bonus = max(hop_count - 2, 0)
 
         semantic_score += depth_bonus
@@ -109,19 +106,28 @@ class AttackPathSemanticRiskPolicy:
             ),
         )
 
-    @staticmethod
     def _relationship_types(
+        self,
         graph: KnowledgeGraph,
         nodes: list[str],
     ) -> list[str]:
         relationship_types: list[str] = []
 
-        for source, target in zip(nodes, nodes[1:], strict=False):
+        for source, target in zip(
+            nodes,
+            nodes[1:],
+            strict=False,
+        ):
+            neighbors = self._neighbors.resolve(
+                graph,
+                source,
+            )
+
             relationship_type = next(
                 (
-                    edge.relationship_type
-                    for edge in graph.neighbors(source)
-                    if edge.target == target
+                    neighbor.relationship_type
+                    for neighbor in neighbors
+                    if neighbor.resource_id == target
                 ),
                 None,
             )

@@ -14,6 +14,11 @@ export const investigations: Investigation[] = [
     findings: 18,
     attackPaths: 6,
     updated: "8 minutes ago",
+    attackPathAnalysis: null,
+    blastRadiusAnalysis: null,
+    riskAssessment: null,
+    reasoning: null,
+
     findingsList: [
       {
         id: "finding-admin-role",
@@ -34,6 +39,7 @@ export const investigations: Investigation[] = [
         resource: "prod-web-security-group",
       },
     ],
+    remediations: [],
   },
 
   {
@@ -49,7 +55,12 @@ export const investigations: Investigation[] = [
     findings: 11,
     attackPaths: 4,
     updated: "2 hours ago",
+    attackPathAnalysis: null,
+    blastRadiusAnalysis: null,
+    riskAssessment: null,
+    reasoning: null,
     findingsList: [],
+    remediations: [],
   },
 
   {
@@ -65,7 +76,12 @@ export const investigations: Investigation[] = [
     findings: 7,
     attackPaths: 2,
     updated: "Yesterday",
+    attackPathAnalysis: null,
+    blastRadiusAnalysis: null,
+    riskAssessment: null,
+    reasoning: null,
     findingsList: [],
+    remediations: [],
   },
 
   {
@@ -81,6 +97,11 @@ export const investigations: Investigation[] = [
     findings: 18,
     attackPaths: 6,
     updated: "Just now",
+    attackPathAnalysis: null,
+    blastRadiusAnalysis: null,
+    riskAssessment: null,
+    reasoning: null,
+
     findingsList: [
       {
         id: "finding-admin-role-new",
@@ -101,5 +122,6 @@ export const investigations: Investigation[] = [
         resource: "prod-web-security-group",
       },
     ],
+    remediations: [],
   },
 ];

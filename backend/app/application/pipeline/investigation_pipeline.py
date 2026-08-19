@@ -8,6 +8,9 @@ from app.engines.correlation.implementations.canonical import (
 )
 from app.engines.graph.implementations import KnowledgeGraphEngine
 from app.engines.risk.implementations import DefaultRiskEngine
+from app.engines.investigation.discovery.candidate_discovery import (
+    InvestigationCandidateDiscovery,
+)
 
 
 class InvestigationPipeline:
@@ -27,6 +30,7 @@ class InvestigationPipeline:
         self._attack_path = DefaultAttackPathEngine()
         self._blast_radius = DefaultBlastRadiusEngine()
         self._risk = DefaultRiskEngine()
+        self._candidate_discovery = InvestigationCandidateDiscovery()
 
     def execute(
         self,
@@ -53,6 +57,10 @@ class InvestigationPipeline:
 
         if investigation.relationships:
             investigation = self._graph.build(investigation)
+
+        investigation.candidates = self._candidate_discovery.discover(
+            investigation,
+        )
 
         if (
             "knowledge_graph" in investigation.analysis

@@ -1,7 +1,12 @@
 from app.schemas.auth.logout import LogoutRequest
 from app.schemas.auth.refresh import RefreshTokenRequest
 from app.schemas.auth.login import LoginRequest
-from app.schemas.auth.register import RegisterRequest, RegisterResponse
+from app.schemas.auth.register import (
+    RegisterRequest,
+    RegisterResponse,
+    VerifyEmailRequest,
+    VerifyEmailResponse,
+)
 from app.schemas.auth.token import TokenResponse
 from app.schemas.auth.user import UserResponse
 
@@ -13,4 +18,6 @@ __all__ = [
     "RegisterResponse",
     "TokenResponse",
     "UserResponse",
+    "VerifyEmailRequest",
+    "VerifyEmailResponse",
 ]

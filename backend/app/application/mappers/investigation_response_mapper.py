@@ -3,12 +3,20 @@ from __future__ import annotations
 from app.application.context import AnalysisContextBuilder
 from app.domain.models.investigation import Investigation
 from app.engines.ai.reasoning import ReasoningEngine
+from app.engines.remediation import RemediationEngine
 from app.schemas.investigation import (
     AttackPathAnalysisResponse,
     BlastRadiusAnalysisResponse,
     BlastRadiusImpactResponse,
+    CandidateContextResponse,
+    CandidateImpactAnalysisResponse,
+    CandidateImpactResponse,
+    CandidateRelatedResourceResponse,
+    InvestigationCandidateResponse,
     InvestigationResponse,
     ReasoningResponse,
+    RemediationResponse,
+    ResourceResponse,
     RiskAssessmentResponse,
 )
 
@@ -25,6 +33,7 @@ class InvestigationResponseMapper:
     def __init__(self) -> None:
         self._context_builder = AnalysisContextBuilder()
         self._reasoning = ReasoningEngine()
+        self._remediation = RemediationEngine()
 
     def map(
         self,
@@ -88,7 +97,82 @@ class InvestigationResponseMapper:
             severity=reasoning.severity,
         )
 
+        remediation_responses = [
+            RemediationResponse(
+                finding_id=plan.finding_id,
+                title=plan.title,
+                severity=plan.severity,
+                resource_id=plan.resource_id,
+                steps=list(plan.steps),
+                executable=plan.executable,
+            )
+            for finding in investigation.findings
+            for plan in [self._remediation.generate(finding)]
+        ]
+
+        candidate_responses = [
+            InvestigationCandidateResponse(
+                resource_id=candidate.resource_id,
+                candidate_type=str(candidate.candidate_type),
+                reason=candidate.reason,
+                evidence=list(candidate.evidence),
+                confidence=candidate.confidence,
+            )
+            for candidate in investigation.candidates
+        ]
+
+        candidate_context_responses = [
+            CandidateContextResponse(
+                candidate_resource_id=item.candidate_resource_id,
+                related_resources=[
+                    CandidateRelatedResourceResponse(
+                        resource_id=related.resource_id,
+                        relationship_type=related.relationship_type,
+                        direction=related.direction,
+                        evidence=related.evidence,
+                    )
+                    for related in item.related_resources
+                ],
+                explanation=item.explanation,
+            )
+            for item in context.candidate_context
+        ]
+
+        resource_responses = [
+            ResourceResponse(
+                id=resource.id,
+                name=resource.name,
+                type=resource.type,
+                provider=resource.provider,
+                tags=dict(resource.tags),
+                metadata=dict(resource.metadata),
+            )
+            for resource in investigation.resources
+        ]
+
+        candidate_impact_responses = [
+            CandidateImpactAnalysisResponse(
+                candidate_resource_id=item.candidate_resource_id,
+                affected_resource_count=item.affected_resource_count,
+                impacts=[
+                    CandidateImpactResponse(
+                        resource_id=impact.resource_id,
+                        relationship_type=impact.relationship_type,
+                        direction=impact.direction,
+                        reason=impact.reason,
+                        evidence=list(impact.evidence),
+                    )
+                    for impact in item.impacts
+                ],
+            )
+            for item in context.candidate_impact
+        ]
+
         return InvestigationResponse(
+            resources=resource_responses,
+            candidates=candidate_responses,
+            candidate_context=candidate_context_responses,
+            candidate_impact=candidate_impact_responses,
             attack_path=legacy_attack_path,
             blast_radius=list(context.blast_radius),
             risk_score=investigation.risk_score,
@@ -97,4 +181,5 @@ class InvestigationResponseMapper:
             blast_radius_analysis=blast_radius_response,
             risk=risk_response,
             reasoning=reasoning_response,
+            remediations=remediation_responses,
         )

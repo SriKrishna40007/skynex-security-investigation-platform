@@ -3,6 +3,7 @@ from __future__ import annotations
 from app.domain.models.relationship import Relationship
 from app.domain.models.resource import Resource
 from app.engines.correlation.rules import (
+    IAMPermissionRule,
     RelationshipRule,
     ResourceReferenceRule,
 )
@@ -23,6 +24,7 @@ class RelationshipBuilder:
     ) -> None:
         self._rules = rules or [
             ResourceReferenceRule(),
+            IAMPermissionRule(),
         ]
 
     def build(

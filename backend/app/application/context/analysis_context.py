@@ -4,6 +4,9 @@ from app.domain.models import AttackPath, RiskAssessment
 from app.domain.models.relationship import Relationship
 from app.domain.models.resource import Resource
 from app.engines.blast_radius.models import BlastRadiusAnalysis
+from app.engines.investigation.models.candidate import InvestigationCandidate
+from app.engines.investigation.models.candidate_context import CandidateContext
+from app.engines.investigation.models.impact import CandidateImpactAnalysis
 
 
 @dataclass(slots=True)
@@ -20,6 +23,14 @@ class AnalysisContext:
     resources: list[Resource] = field(default_factory=list)
 
     relationships: list[Relationship] = field(default_factory=list)
+
+    candidates: list[InvestigationCandidate] = field(default_factory=list)
+
+    candidate_context: list[CandidateContext] = field(default_factory=list)
+
+    candidate_impact: list[CandidateImpactAnalysis] = field(
+        default_factory=list,
+    )
 
     attack_path: AttackPath | None = None
 

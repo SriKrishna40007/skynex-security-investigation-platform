@@ -8,21 +8,29 @@ from app.application.auth import (
     LogoutSessionUseCase,
     RefreshSessionUseCase,
     RegisterUserUseCase,
+    VerifyEmailUseCase,
 )
 from app.core.database import get_db
 from app.core.logging import security_event
 from app.exceptions import (
     InvalidCredentialsError,
+    InvalidEmailVerificationTokenError,
     UserAlreadyExistsError,
 )
 from app.models.user import User
-from app.repositories import SessionRepository, UserRepository
+from app.repositories import (
+    EmailVerificationTokenRepository,
+    SessionRepository,
+    UserRepository,
+)
 from app.schemas.auth import (
     LoginRequest,
     LogoutRequest,
     RefreshTokenRequest,
     RegisterRequest,
     RegisterResponse,
+    VerifyEmailRequest,
+    VerifyEmailResponse,
     TokenResponse,
     UserResponse,
 )
@@ -42,14 +50,44 @@ def register(
     request: RegisterRequest,
     db: Session = Depends(get_db),
 ) -> RegisterResponse:
-    repository = UserRepository(db)
-    use_case = RegisterUserUseCase(repository)
+    user_repository = UserRepository(db)
+    verification_repository = EmailVerificationTokenRepository(db)
+
+    use_case = RegisterUserUseCase(
+        user_repository,
+        verification_repository,
+    )
 
     try:
         return use_case.execute(request)
     except UserAlreadyExistsError as exc:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
+            detail=str(exc),
+        ) from exc
+
+
+@router.post(
+    "/verify-email",
+    response_model=VerifyEmailResponse,
+)
+def verify_email(
+    request: VerifyEmailRequest,
+    db: Session = Depends(get_db),
+) -> VerifyEmailResponse:
+    user_repository = UserRepository(db)
+    verification_repository = EmailVerificationTokenRepository(db)
+
+    use_case = VerifyEmailUseCase(
+        user_repository,
+        verification_repository,
+    )
+
+    try:
+        return use_case.execute(request.token)
+    except InvalidEmailVerificationTokenError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(exc),
         ) from exc
 

@@ -3,6 +3,7 @@ from __future__ import annotations
 from app.domain.models.relationship import Relationship
 from app.domain.models.resource import Resource
 from app.engines.correlation.rules import (
+    IAMPermissionRule,
     RelationshipRule,
     ResourceReferenceRule,
 )
@@ -16,6 +17,7 @@ class TerraformRelationshipBuilder:
     def __init__(self) -> None:
         self._rules: list[RelationshipRule] = [
             ResourceReferenceRule(),
+            IAMPermissionRule(),
         ]
 
     def build(

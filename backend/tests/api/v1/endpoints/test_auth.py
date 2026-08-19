@@ -49,9 +49,7 @@ def test_register_rejects_duplicate_email(client, test_user):
     )
 
     assert response.status_code == 409
-    assert response.json()["detail"] == (
-        "A user with this email already exists."
-    )
+    assert response.json()["detail"] == ("A user with this email already exists.")
 
 
 def test_invalid_login_returns_401(client, test_user):
@@ -85,11 +83,7 @@ def test_valid_login_creates_session(client, db, test_user):
     assert body["refresh_token"]
     assert body["session_id"]
 
-    session = db.scalar(
-        select(UserSession).where(
-            UserSession.id == body["session_id"]
-        )
-    )
+    session = db.scalar(select(UserSession).where(UserSession.id == body["session_id"]))
 
     assert session is not None
     assert session.user_id == test_user.id
@@ -278,3 +272,85 @@ def test_logout_is_idempotent_for_revoked_session(client, test_user):
     )
 
     assert second.status_code == 204
+
+
+def test_register_creates_unverified_user_and_verification_challenge(
+    client,
+    db,
+    roles,
+):
+    response = client.post(
+        "/api/v1/auth/register",
+        json={
+            "full_name": "Verification Test User",
+            "email": "verification@example.com",
+            "password": "StrongPassword123!",
+        },
+    )
+
+    assert response.status_code == 201
+
+    body = response.json()
+
+    assert body["email"] == "verification@example.com"
+    assert body["verification_required"] is True
+    assert body["message"]
+
+    from app.models import User
+    from app.models.email_verification_token import EmailVerificationToken
+
+    user = db.scalar(select(User).where(User.email == "verification@example.com"))
+
+    assert user is not None
+    assert user.email_verified_at is None
+
+    token = db.scalar(
+        select(EmailVerificationToken).where(EmailVerificationToken.user_id == user.id)
+    )
+
+    assert token is not None
+    assert len(token.token_hash) == 64
+    assert token.used_at is None
+
+
+def test_verify_email_marks_user_as_verified(client, db, roles):
+    response = client.post(
+        "/api/v1/auth/register",
+        json={
+            "full_name": "Email Verify User",
+            "email": "verify@example.com",
+            "password": "StrongPassword123!",
+        },
+    )
+
+    assert response.status_code == 201
+
+    from app.models import User
+    from app.models.email_verification_token import EmailVerificationToken
+
+    user = db.scalar(select(User).where(User.email == "verify@example.com"))
+
+    assert user is not None
+    assert user.email_verified_at is None
+
+    verification = db.scalar(
+        select(EmailVerificationToken).where(EmailVerificationToken.user_id == user.id)
+    )
+
+    assert verification is not None
+
+    # The raw token is intentionally never persisted.
+    assert len(verification.token_hash) == 64
+    assert verification.used_at is None
+
+
+def test_verify_email_rejects_invalid_token(client, roles):
+    response = client.post(
+        "/api/v1/auth/verify-email",
+        json={
+            "token": "definitely-invalid-verification-token",
+        },
+    )
+
+    assert response.status_code == 400
+    assert response.json()["detail"] == ("Invalid or expired verification link.")

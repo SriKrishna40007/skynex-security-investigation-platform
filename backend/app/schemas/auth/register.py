@@ -18,3 +18,18 @@ class RegisterResponse(BaseModel):
     full_name: str
     email: EmailStr
     is_active: bool
+    verification_required: bool = True
+    message: str = "Account created. Please verify your email before signing in."
+
+
+class VerifyEmailRequest(BaseModel):
+    """Request payload for email verification."""
+
+    token: str = Field(..., min_length=20, max_length=512)
+
+
+class VerifyEmailResponse(BaseModel):
+    """Response returned after successful email verification."""
+
+    message: str
+    email_verified: bool = True

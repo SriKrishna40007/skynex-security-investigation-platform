@@ -54,6 +54,11 @@ export class InMemoryInvestigationRepository
       updated: createTimestamp(),
 
       findingsList: [],
+      attackPathAnalysis: null,
+      blastRadiusAnalysis: null,
+      riskAssessment: null,
+      reasoning: null,
+      remediations: [],
     };
 
     this.records.unshift(investigation);

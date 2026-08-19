@@ -1,3 +1,4 @@
+from .email_verification_token_repository import EmailVerificationTokenRepository
 from .investigation_repository import InvestigationRepository
 from .role_repository import RoleRepository
 from .session_repository import SessionRepository
@@ -8,6 +9,7 @@ __all__ = [
     "RoleRepository",
     "SessionRepository",
     "UserRepository",
+    "EmailVerificationTokenRepository",
     "DashboardRepository",
 ]
 

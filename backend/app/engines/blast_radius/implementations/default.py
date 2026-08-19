@@ -10,7 +10,7 @@ from app.engines.blast_radius.models import (
 )
 from app.engines.graph.algorithms import BreadthFirstTraversal
 from app.engines.graph.models import KnowledgeGraph
-from app.engines.graph.policies import RelationshipSemantics
+from app.engines.graph.traversal import SecurityNeighborResolver
 
 
 class DefaultBlastRadiusEngine(BlastRadiusEngine):
@@ -23,6 +23,7 @@ class DefaultBlastRadiusEngine(BlastRadiusEngine):
 
     def __init__(self) -> None:
         self._traversal = BreadthFirstTraversal()
+        self._neighbors = SecurityNeighborResolver()
 
     def analyze(
         self,
@@ -77,25 +78,27 @@ class DefaultBlastRadiusEngine(BlastRadiusEngine):
 
         queue = deque([compromised_resource])
 
+        neighbors = SecurityNeighborResolver()
+
         while queue:
             current = queue.popleft()
 
-            for edge in graph.neighbors(current):
-                if not RelationshipSemantics.is_security_traversable(
-                    edge.relationship_type
-                ):
+            for neighbor in neighbors.resolve(
+                graph,
+                current,
+            ):
+                resource_id = neighbor.resource_id
+
+                if resource_id in depths:
                     continue
 
-                if edge.target in depths:
-                    continue
-
-                depths[edge.target] = depths[current] + 1
-                relationship_paths[edge.target] = (
+                depths[resource_id] = depths[current] + 1
+                relationship_paths[resource_id] = (
                     *relationship_paths[current],
-                    edge.relationship_type,
+                    neighbor.relationship_type,
                 )
 
-                queue.append(edge.target)
+                queue.append(resource_id)
 
         impacts = tuple(
             BlastRadiusImpact(

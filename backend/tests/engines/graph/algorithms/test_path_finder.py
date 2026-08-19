@@ -48,3 +48,44 @@ def test_shortest_path_returns_expected_path():
         "ec2",
         "rds",
     ]
+
+
+def test_path_finder_uses_reverse_protected_by_security_propagation():
+    from app.engines.graph.models import GraphEdge, GraphNode, KnowledgeGraph
+
+    graph = KnowledgeGraph()
+
+    graph.add_node(
+        GraphNode(
+            "instance",
+            "Instance",
+            "aws_instance",
+        )
+    )
+
+    graph.add_node(
+        GraphNode(
+            "security_group",
+            "Security Group",
+            "aws_security_group",
+        )
+    )
+
+    graph.add_edge(
+        GraphEdge(
+            source="instance",
+            target="security_group",
+            relationship_type="protected_by",
+        )
+    )
+
+    path = PathFinder().shortest_path(
+        graph,
+        "security_group",
+        "instance",
+    )
+
+    assert path == [
+        "security_group",
+        "instance",
+    ]

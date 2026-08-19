@@ -9,6 +9,7 @@ from iam_intelligence_engine import IAMEngine
 from iam_intelligence_engine.application.dto.analysis_request import AnalysisRequest
 
 from app.integrations.iam.contracts import IAMAnalysisEnvelope
+from app.integrations.iam.exceptions import IAMPolicyValidationError
 
 
 class IAMEngineAdapter:
@@ -26,11 +27,9 @@ class IAMEngineAdapter:
         self,
         policy_data: dict[str, Any],
     ) -> Any:
-        """Analyze an already parsed IAM policy."""
+        """Analyze an already parsed and validated IAM policy."""
 
-        engine_policy = self._normalize_engine_policy(
-            policy_data,
-        )
+        engine_policy = self._normalize_engine_policy(policy_data)
 
         request = AnalysisRequest(
             policy_data=engine_policy,
@@ -44,10 +43,6 @@ class IAMEngineAdapter:
     ) -> dict[str, Any]:
         """
         Adapt valid IAM policy shapes to the IAM Intelligence Engine contract.
-
-        The external engine currently expects Statement to be a list.
-        SKYNEX preserves the original policy evidence and normalizes only
-        the copy passed across the integration boundary.
         """
 
         engine_policy = dict(policy_data)
@@ -59,19 +54,60 @@ class IAMEngineAdapter:
 
         return engine_policy
 
+    @staticmethod
+    def _validate_policy(
+        policy_data: Any,
+    ) -> dict[str, Any]:
+        if not isinstance(policy_data, dict):
+            raise IAMPolicyValidationError(
+                "IAM policy must be a JSON object."
+            )
+
+        missing = [
+            key
+            for key in ("Version", "Statement")
+            if key not in policy_data
+        ]
+
+        if missing:
+            raise IAMPolicyValidationError(
+                f"IAM policy is missing required field(s): {', '.join(missing)}."
+            )
+
+        if not isinstance(policy_data["Version"], str):
+            raise IAMPolicyValidationError(
+                "IAM policy Version must be a string."
+            )
+
+        statements = policy_data["Statement"]
+
+        if not isinstance(statements, (list, dict)):
+            raise IAMPolicyValidationError(
+                "IAM policy Statement must be an object or list."
+            )
+
+        return policy_data
+
     async def analyze_upload(
         self,
         policy: UploadFile,
     ) -> IAMAnalysisEnvelope:
         """
-        Parse an uploaded IAM policy and preserve the analyzed evidence.
+        Parse, validate, and analyze an uploaded IAM policy.
         """
 
         policy_content = await policy.read()
 
-        policy_dict = json.loads(
-            policy_content.decode("utf-8"),
-        )
+        try:
+            policy_dict = json.loads(
+                policy_content.decode("utf-8"),
+            )
+        except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+            raise IAMPolicyValidationError(
+                "IAM policy must contain valid UTF-8 JSON."
+            ) from exc
+
+        policy_dict = self._validate_policy(policy_dict)
 
         analysis_result = self.analyze_policy(
             policy_dict,
